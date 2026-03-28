@@ -54,7 +54,8 @@ const phrasesData = [
 
 // Function to get all phrases
 function getAllPhrases() {
-    return phrasesData;
+    const customPhrases = Storage.getCustomPhrases();
+    return [...phrasesData, ...customPhrases];
 }
 
 // Function to get a random phrase
@@ -78,7 +79,7 @@ function compareAnswers(userAnswer, correctAnswer) {
     const normalize = (str) => {
         return removeAccents(str)
             .toLowerCase()
-            .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()¿?¡!]/g, '') // Remove punctuation
+            .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()ï¿½?ï¿½!]/g, '') // Remove punctuation
             .trim()
             .replace(/\s+/g, ' '); // Replace multiple spaces with single space
     };
@@ -91,7 +92,7 @@ function findDifferences(userAnswer, correctAnswer) {
     const normalizeForComparison = (str) => {
         return removeAccents(str)
             .toLowerCase()
-            .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()¿?¡!]/g, '') // Remove punctuation
+            .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()ï¿½?ï¿½!]/g, '') // Remove punctuation
             .trim();
     };
     

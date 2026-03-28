@@ -181,5 +181,38 @@ const Storage = {
             delete dailyProgress[username][date];
             localStorage.setItem('dailyProgress', JSON.stringify(dailyProgress));
         }
+    },
+
+    // Save custom phrase
+    saveCustomPhrase(euskera, castellano) {
+        const customPhrases = this.getCustomPhrases();
+        const newId = customPhrases.length > 0 
+            ? Math.max(...customPhrases.map(p => p.id)) + 1 
+            : 1000; // Start custom IDs from 1000
+        
+        const newPhrase = {
+            id: newId,
+            euskera: euskera.trim(),
+            castellano: castellano.trim(),
+            custom: true,
+            createdAt: new Date().toISOString()
+        };
+        
+        customPhrases.push(newPhrase);
+        localStorage.setItem('customPhrases', JSON.stringify(customPhrases));
+        return newPhrase;
+    },
+
+    // Get custom phrases
+    getCustomPhrases() {
+        const phrases = localStorage.getItem('customPhrases');
+        return phrases ? JSON.parse(phrases) : [];
+    },
+
+    // Delete custom phrase
+    deleteCustomPhrase(id) {
+        let customPhrases = this.getCustomPhrases();
+        customPhrases = customPhrases.filter(p => p.id !== id);
+        localStorage.setItem('customPhrases', JSON.stringify(customPhrases));
     }
 };

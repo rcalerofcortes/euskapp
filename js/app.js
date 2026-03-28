@@ -4,6 +4,7 @@ const routes = {
     'menu': renderMenuScreen,
     'study': renderStudyScreen,
     'phrases': renderPhrasesScreen,
+    'addcontent': renderAddContentScreen,
     'challenges': renderChallengesScreen,
     'statistics': renderStatisticsScreen
 };

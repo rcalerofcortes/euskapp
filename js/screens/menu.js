@@ -25,6 +25,13 @@ function renderMenuScreen() {
             </div>
             
             <div class="boxes-container" style="grid-template-columns: 1fr; margin-top: 20px;">
+                <div class="box" onclick="navigateTo('addcontent')">
+                    <h2>Add Content</h2>
+                    <p>Add your own phrases</p>
+                </div>
+            </div>
+            
+            <div class="boxes-container" style="grid-template-columns: 1fr; margin-top: 20px;">
                 <div class="box" onclick="navigateTo('statistics')">
                     <h2>Statistics</h2>
                     <p>View your daily progress</p>
