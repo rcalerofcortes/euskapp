@@ -30,6 +30,15 @@ function renderAddContentScreen() {
                 </div>
                 
                 <div id="add-phrase-message" style="margin-top: 15px; display: none;"></div>
+                
+                <div style="margin-top: 30px; padding-top: 30px; border-top: 2px solid #e0e0e0;">
+                    <button class="btn btn-primary" onclick="handleDownloadDataFile()" style="width: 100%; background: #ff9800;">
+                        Download All Content (data.js)
+                    </button>
+                    <p style="color: #666; font-size: 14px; text-align: center; margin-top: 10px;">
+                        Download a data.js file with all phrases (${getAllPhrases().length} total) to backup or replace in your computer
+                    </p>
+                </div>
             </div>
             
             ${customPhrases.length > 0 ? renderCustomPhrasesList(customPhrases) : renderEmptyCustomPhrases()}
@@ -151,4 +160,94 @@ function handleDeletePhrase(id) {
         Storage.deleteCustomPhrase(id);
         renderAddContentScreen();
     }
+}
+
+function handleDownloadDataFile() {
+    const allPhrases = getAllPhrases();
+    
+    // Generate the data.js file content
+    const fileContent = `// Database of phrases in Basque and Spanish
+const phrasesData = ${JSON.stringify(allPhrases, null, 4).replace(/"(\w+)":/g, '$1:')};
+
+// Function to get all phrases
+function getAllPhrases() {
+    const customPhrases = Storage.getCustomPhrases();
+    return [...phrasesData, ...customPhrases];
+}
+
+// Function to get a random phrase
+function getRandomPhrase() {
+    const randomIndex = Math.floor(Math.random() * phrasesData.length);
+    return phrasesData[randomIndex];
+}
+
+// Function to get a phrase by ID
+function getPhraseById(id) {
+    return phrasesData.find(phrase => phrase.id === id);
+}
+
+// Function to remove accents from a string
+function removeAccents(str) {
+    return str.normalize('NFD').replace(/[\\u0300-\\u036f]/g, '');
+}
+
+// Function to compare answers (case insensitive, without accents, punctuation, and extra spaces)
+function compareAnswers(userAnswer, correctAnswer) {
+    const normalize = (str) => {
+        return removeAccents(str)
+            .toLowerCase()
+            .replace(/[.,\\/#!$%\\^&\\*;:{}=\\-_\`~()¿?¡!]/g, '') // Remove punctuation
+            .trim()
+            .replace(/\\s+/g, ' '); // Replace multiple spaces with single space
+    };
+    return normalize(userAnswer) === normalize(correctAnswer);
+}
+
+// Function to find differences between two strings
+function findDifferences(userAnswer, correctAnswer) {
+    // Normalize both answers for comparison
+    const normalizeForComparison = (str) => {
+        return removeAccents(str)
+            .toLowerCase()
+            .replace(/[.,\\/#!$%\\^&\\*;:{}=\\-_\`~()¿?¡!]/g, '') // Remove punctuation
+            .trim();
+    };
+    
+    const userWords = normalizeForComparison(userAnswer).split(/\\s+/);
+    const correctWords = normalizeForComparison(correctAnswer).split(/\\s+/);
+    
+    const differences = [];
+    
+    // Compare word by word
+    const maxLength = Math.max(userWords.length, correctWords.length);
+    
+    for (let i = 0; i < maxLength; i++) {
+        if (userWords[i] !== correctWords[i]) {
+            if (i < userWords.length && i < correctWords.length) {
+                differences.push(\`Word \${i + 1}: you wrote "\${userWords[i]}" but it should be "\${correctWords[i]}"\`);
+            } else if (i >= userWords.length) {
+                differences.push(\`Missing word "\${correctWords[i]}"\`);
+            } else {
+                differences.push(\`Extra word "\${userWords[i]}"\`);
+            }
+        }
+    }
+    
+    return differences;
+}
+`;
+
+    // Create blob and download
+    const blob = new Blob([fileContent], { type: 'text/javascript' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'data.js';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    // Show success message
+    alert(`Downloaded data.js with ${allPhrases.length} phrases!\\n\\nYou can now replace the file in:\\njs/data.js`);
 }
