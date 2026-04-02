@@ -254,11 +254,11 @@ function findDifferences(userAnswer, correctAnswer) {
     for (let i = 0; i < maxLength; i++) {
         if (userWords[i] !== correctWords[i]) {
             if (i < userWords.length && i < correctWords.length) {
-                differences.push(\`Word \${i + 1}: you wrote "\${userWords[i]}" but it should be "\${correctWords[i]}"\`);
+                differences.push(`Word ${i + 1}: you wrote "${userWords[i]}" but it should be "${correctWords[i]}"`);
             } else if (i >= userWords.length) {
-                differences.push(\`Missing word "\${correctWords[i]}"\`);
+                differences.push(`Missing word "${correctWords[i]}"`);
             } else {
-                differences.push(\`Extra word "\${userWords[i]}"\`);
+                differences.push(`Extra word "${userWords[i]}"`);
             }
         }
     }
