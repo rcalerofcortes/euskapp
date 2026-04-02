@@ -184,7 +184,7 @@ const Storage = {
     },
 
     // Save custom phrase
-    saveCustomPhrase(euskera, castellano) {
+    saveCustomPhrase(euskera, castellano, euskeraAlternatives = [], castellanoAlternatives = []) {
         const customPhrases = this.getCustomPhrases();
         const newId = customPhrases.length > 0 
             ? Math.max(...customPhrases.map(p => p.id)) + 1 
@@ -197,6 +197,14 @@ const Storage = {
             custom: true,
             createdAt: new Date().toISOString()
         };
+        
+        // Add alternatives if provided
+        if (euskeraAlternatives.length > 0) {
+            newPhrase.euskeraAlternatives = euskeraAlternatives;
+        }
+        if (castellanoAlternatives.length > 0) {
+            newPhrase.castellanoAlternatives = castellanoAlternatives;
+        }
         
         customPhrases.push(newPhrase);
         localStorage.setItem('customPhrases', JSON.stringify(customPhrases));

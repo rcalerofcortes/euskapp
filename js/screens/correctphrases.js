@@ -59,9 +59,19 @@ function renderCorrectPhrasesList(phrases) {
                                 <div style="font-size: 18px; font-weight: 600; color: #333; margin-bottom: 8px;">
                                     ${phrase.euskera}
                                 </div>
+                                ${phrase.euskeraAlternatives && phrase.euskeraAlternatives.length > 0 ? `
+                                    <div style="font-size: 14px; color: #999; margin-bottom: 8px; font-style: italic;">
+                                        Also: ${phrase.euskeraAlternatives.join(', ')}
+                                    </div>
+                                ` : ''}
                                 <div style="font-size: 16px; color: #667eea;">
                                     ${phrase.castellano}
                                 </div>
+                                ${phrase.castellanoAlternatives && phrase.castellanoAlternatives.length > 0 ? `
+                                    <div style="font-size: 14px; color: #999; margin-top: 4px; font-style: italic;">
+                                        Also: ${phrase.castellanoAlternatives.join(', ')}
+                                    </div>
+                                ` : ''}
                             </div>
                             <div style="text-align: right; margin-left: 15px;">
                                 <div style="font-size: 24px; font-weight: bold; color: #4caf50;">

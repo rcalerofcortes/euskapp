@@ -224,7 +224,11 @@ function checkAnswer() {
         ? currentPhrase.castellano
         : currentPhrase.euskera;
     
-    const isCorrect = compareAnswers(userAnswer, correctAnswer);
+    const alternatives = translationDirection === 'euskera-castellano'
+        ? (currentPhrase.castellanoAlternatives || [])
+        : (currentPhrase.euskeraAlternatives || []);
+    
+    const isCorrect = compareAnswers(userAnswer, correctAnswer, alternatives);
     const card = document.getElementById('phrase-card');
     const feedback = document.getElementById('feedback');
     
@@ -236,36 +240,53 @@ function checkAnswer() {
     if (isCorrect) {
         // Correct answer
         card.classList.add('correct');
+        
+        // Build list of all possible correct answers
+        const allCorrectAnswers = [correctAnswer, ...alternatives];
+        
+        // Find which answer matches the user's (normalized comparison)
+        const normalize = (str) => {
+            return removeAccents(str)
+                .toLowerCase()
+                .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()¿?¡!]/g, '')
+                .trim()
+                .replace(/\s+/g, ' ');
+        };
+        
+        const normalizedUserAnswer = normalize(userAnswer);
+        const matchedAnswer = allCorrectAnswers.find(ans => normalize(ans) === normalizedUserAnswer);
+        
+        // Get the other alternatives (excluding the one user wrote)
+        const otherAnswers = allCorrectAnswers.filter(ans => normalize(ans) !== normalizedUserAnswer);
+        
+        const alternativesText = otherAnswers.length > 0 
+            ? `<div style="margin-top: 8px;">
+                <em>Also correct: ${otherAnswers.join(', ')}</em>
+               </div>`
+            : '';
+        
         feedback.innerHTML = `
             <div class="phrase-feedback correct">
                 <strong>Correct!</strong>
-                <div style="margin-top: 10px;">
-                    ${currentPhrase.euskera} = ${currentPhrase.castellano}
-                </div>
+                ${alternativesText}
             </div>
         `;
     } else {
         // Incorrect answer
         card.classList.add('incorrect');
-        const differences = findDifferences(userAnswer, correctAnswer);
+        const alternativesText = alternatives.length > 0 
+            ? `<div style="margin-top: 8px;">
+                <strong>Alternative answers:</strong> ${alternatives.join(', ')}
+               </div>`
+            : '';
         
         feedback.innerHTML = `
             <div class="phrase-feedback incorrect">
-                <strong>Incorrect</strong>
+                <strong>Incorrect!</strong>
                 <div style="margin-top: 10px;">
                     <strong>Correct answer:</strong> ${correctAnswer}
                 </div>
-                <div style="margin-top: 10px;">
-                    <strong>Your answer:</strong> ${userAnswer}
-                </div>
-                ${differences.length > 0 ? `
-                    <div class="error-details">
-                        <strong>Errors detected:</strong>
-                        <ul style="margin: 10px 0 0 20px;">
-                            ${differences.map(d => `<li>${d}</li>`).join('')}
-                        </ul>
-                    </div>
-                ` : ''}
+                ${alternativesText}
             </div>
         `;
     }
