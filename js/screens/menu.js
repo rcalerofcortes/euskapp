@@ -1,12 +1,21 @@
 // Screen 2 - Main Menu (Choose Activity)
-function renderMenuScreen() {
+async function renderMenuScreen() {
     const app = document.getElementById('app');
-    const username = Storage.getCurrentUser();
+    
+    // Get current user from Supabase
+    const user = await SupabaseAuth.getCurrentUser();
+    
+    if (!user) {
+        navigateTo('login');
+        return;
+    }
+    
+    const displayName = user.email.split('@')[0]; // Use part before @ as display name
     
     app.innerHTML = `
         <div class="screen">
             <div class="header">
-                <h1>Hello, ${username}!</h1>
+                <h1>Hello, ${displayName}!</h1>
                 <button class="logout-button" onclick="handleLogout()">Logout</button>
             </div>
             
@@ -39,7 +48,7 @@ function renderMenuScreen() {
             </div>
             
             <div class="text-center" style="margin-top: 30px;">
-                <button class="btn btn-danger" onclick="handleResetData()" style="background: #ff9800; padding: 10px 20px; font-size: 14px;">Reset All Data</button>
+                <button class="btn btn-danger" onclick="handleResetData()" style="background: #ff9800; padding: 10px 20px; font-size: 14px;">Reset My Progress</button>
             </div>
         </div>
     `;
@@ -62,23 +71,26 @@ function getUserStatsHTML() {
     `;
 }
 
-function handleLogout() {
+async function handleLogout() {
     if (confirm('Are you sure you want to logout?')) {
-        Storage.logout();
-        navigateTo('login');
+        const result = await SupabaseAuth.signOut();
+        if (result.success) {
+            navigateTo('login');
+        } else {
+            alert('Error logging out. Please try again.');
+        }
     }
 }
 
-function handleResetData() {
-    const confirmation = confirm('WARNING: This will delete ALL users, progress, and data permanently. Are you sure?');
+async function handleResetData() {
+    const confirmation = confirm('WARNING: This will delete YOUR progress data. Are you sure?');
     
     if (confirmation) {
-        const doubleCheck = confirm('This action cannot be undone. Delete everything?');
+        const doubleCheck = confirm('This action cannot be undone. Delete your progress?');
         
         if (doubleCheck) {
-            Storage.resetAllData();
-            alert('All data has been deleted successfully');
-            navigateTo('login');
+            // TODO: Implement delete user progress from Supabase
+            alert('Feature coming soon: Delete progress from cloud database');
         }
     }
 }

@@ -72,6 +72,11 @@ function renderCorrectPhrasesList(phrases) {
                                         Also: ${phrase.castellanoAlternatives.join(', ')}
                                     </div>
                                 ` : ''}
+                                ${phrase.note ? `
+                                    <div style="font-size: 13px; color: #333; margin-top: 8px; padding: 6px 8px; background: #f0f7ff; border-radius: 4px; border-left: 3px solid #667eea;">
+                                        <strong style="color: #667eea;">📝</strong> ${phrase.note}
+                                    </div>
+                                ` : ''}
                             </div>
                             <div style="text-align: right; margin-left: 15px;">
                                 <div style="font-size: 24px; font-weight: bold; color: #4caf50;">

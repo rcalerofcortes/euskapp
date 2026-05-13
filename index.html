@@ -22,83 +22,43 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <!-- Update notification banner -->
-    <div id="update-banner" style="display: none; position: fixed; top: 0; left: 0; right: 0; background: #4caf50; color: white; padding: 15px; text-align: center; z-index: 10000; box-shadow: 0 2px 10px rgba(0,0,0,0.3);">
-        <strong>🎉 New version available!</strong>
-        <button onclick="updateApp()" style="margin-left: 15px; background: white; color: #4caf50; border: none; padding: 8px 20px; border-radius: 5px; font-weight: bold; cursor: pointer;">
-            Update Now
-        </button>
-    </div>
-
     <!-- Main container where screens are loaded -->
     <div id="app"></div>
 
     <!-- Scripts -->
-    <script src="js/storage.js"></script>
-    <script src="js/data.js"></script>
-    <script src="js/screens/login.js"></script>
-    <script src="js/screens/menu.js"></script>
-    <script src="js/screens/study.js"></script>
-    <script src="js/screens/phrases.js"></script>
-    <script src="js/screens/addcontent.js"></script>
-    <script src="js/screens/challenges.js"></script>
-    <script src="js/screens/statistics.js"></script>
-    <script src="js/app.js"></script>
+    <!-- Load Supabase SDK first -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
-    <!-- Service Worker Registration -->
+    <!-- Wait for page to load before initializing -->
     <script>
-        let newWorker;
-        
-        // Register service worker
+        // This ensures all scripts load in order and Supabase is ready
+        window.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, Supabase available:', !!window.supabase);
+        });
+    </script>
+    
+    <script src="js/supabase-client.js" defer></script>
+    <script src="js/storage.js" defer></script>
+    <script src="js/data.js" defer></script>
+    <script src="js/screens/login.js" defer></script>
+    <script src="js/screens/menu.js" defer></script>
+    <script src="js/screens/study.js" defer></script>
+    <script src="js/screens/phrases.js" defer></script>
+    <script src="js/screens/addcontent.js" defer></script>
+    <script src="js/screens/challenges.js" defer></script>
+    <script src="js/screens/statistics.js" defer></script>
+    <script src="js/app.js" defer></script>
+    
+    <!-- Unregister Service Worker (temporary) -->
+    <script>
+        // Remove old service worker if it exists
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/euskapp/service-worker.js')
-                    .then(registration => {
-                        console.log('Service Worker registered:', registration);
-                        
-                        // Check for updates every 60 seconds
-                        setInterval(() => {
-                            registration.update();
-                        }, 60000);
-                        
-                        // Detect when a new service worker is waiting
-                        registration.addEventListener('updatefound', () => {
-                            newWorker = registration.installing;
-                            
-                            newWorker.addEventListener('statechange', () => {
-                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                    // New service worker available, show update banner
-                                    showUpdateBanner();
-                                }
-                            });
-                        });
-                    })
-                    .catch(err => {
-                        console.log('Service Worker registration failed:', err);
-                    });
-                    
-                // Auto-reload when controller changes
-                let refreshing = false;
-                navigator.serviceWorker.addEventListener('controllerchange', () => {
-                    if (!refreshing) {
-                        refreshing = true;
-                        window.location.reload();
-                    }
-                });
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for(let registration of registrations) {
+                    registration.unregister();
+                    console.log('Service Worker unregistered');
+                }
             });
-        }
-        
-        function showUpdateBanner() {
-            const banner = document.getElementById('update-banner');
-            if (banner) {
-                banner.style.display = 'block';
-            }
-        }
-        
-        function updateApp() {
-            if (newWorker) {
-                newWorker.postMessage({ type: 'SKIP_WAITING' });
-            }
         }
     </script>
 </body>

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚠️ Instrucciones - EuskApp</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #f44336;
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+        h2 {
+            color: #667eea;
+            margin-top: 30px;
+        }
+        .method {
+            background: #f0f7ff;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        .method h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        code {
+            background: #333;
+            color: #0f0;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
+        .steps {
+            background: #fff;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+            border: 1px solid #e0e0e0;
+        }
+        .steps ol {
+            margin: 10px 0;
+            padding-left: 25px;
+        }
+        .note {
+            background: #fff3e0;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border-left: 4px solid #ff9800;
+        }
+        .success {
+            background: #e8f5e9;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border-left: 4px solid #4caf50;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #5568d3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚠️ Problema Detectado</h1>
+        <p style="font-size: 18px; color: #666;">
+            No puedes abrir <code>index.html</code> haciendo doble clic en el archivo. 
+            Los navegadores modernos bloquean JavaScript por seguridad cuando usas el protocolo <code>file://</code>
+        </p>
+
+        <div class="note">
+            <strong>🔍 Por qué no funciona:</strong><br>
+            Los archivos JavaScript no se pueden cargar desde <code>file:///C:/...</code> por restricciones de CORS (Cross-Origin Resource Sharing).
+        </div>
+
+        <h2>✅ Soluciones (Elige una):</h2>
+
+        <!-- Método 1 -->
+        <div class="method">
+            <h3>🚀 Método 1: Usar el archivo START_SERVER.bat (MÁS FÁCIL)</h3>
+            <div class="steps">
+                <ol>
+                    <li>Busca el archivo <strong>START_SERVER.bat</strong> en esta carpeta</li>
+                    <li><strong>Haz doble clic</strong> en START_SERVER.bat</li>
+                    <li>Se abrirá una ventana negra (no la cierres)</li>
+                    <li>Abre tu navegador en: <a href="http://localhost:8000" target="_blank">http://localhost:8000</a></li>
+                    <li>¡Listo! Ya verás la pantalla de login</li>
+                </ol>
+                <div class="success">
+                    <strong>✅ Recomendado:</strong> Esta es la forma más fácil si tienes Python instalado.
+                </div>
+            </div>
+        </div>
+
+        <!-- Método 2 -->
+        <div class="method">
+            <h3>🎨 Método 2: Usar Live Server en VS Code</h3>
+            <div class="steps">
+                <p><strong>Si estás usando Visual Studio Code:</strong></p>
+                <ol>
+                    <li>Instala la extensión <strong>"Live Server"</strong> de Ritwick Dey</li>
+                    <li>Abre la carpeta euskapp en VS Code</li>
+                    <li>Clic derecho en <code>index.html</code></li>
+                    <li>Selecciona <strong>"Open with Live Server"</strong></li>
+                    <li>Se abrirá automáticamente en tu navegador</li>
+                </ol>
+            </div>
+        </div>
+
+        <!-- Método 3 -->
+        <div class="method">
+            <h3>🐍 Método 3: Python Manual</h3>
+            <div class="steps">
+                <p><strong>Si tienes Python instalado:</strong></p>
+                <ol>
+                    <li>Abre <strong>Terminal</strong> o <strong>CMD</strong></li>
+                    <li>Navega a la carpeta: <code>cd C:\Users\29851\repos\euskapp</code></li>
+                    <li>Ejecuta: <code>python -m http.server 8000</code></li>
+                    <li>Abre: <a href="http://localhost:8000" target="_blank">http://localhost:8000</a></li>
+                </ol>
+            </div>
+        </div>
+
+        <!-- Método 4 -->
+        <div class="method">
+            <h3>🌐 Método 4: Node.js (si lo tienes instalado)</h3>
+            <div class="steps">
+                <ol>
+                    <li>Abre Terminal/CMD en esta carpeta</li>
+                    <li>Ejecuta: <code>npx serve .</code></li>
+                    <li>Abre la URL que te muestre</li>
+                </ol>
+            </div>
+        </div>
+
+        <div class="note">
+            <strong>💡 Tip:</strong> Una vez que uses cualquier método, podrás:
+            <ul>
+                <li>✅ Crear una cuenta con tu email</li>
+                <li>✅ Practicar frases</li>
+                <li>✅ Ver estadísticas</li>
+                <li>✅ Agregar nuevas frases</li>
+            </ul>
+        </div>
+
+        <h2>🐛 ¿Necesitas más ayuda?</h2>
+        <p>Si ningún método funciona:</p>
+        <ol>
+            <li>Instala Python: <a href="https://www.python.org/downloads/" target="_blank">python.org/downloads</a></li>
+            <li>O instala VS Code con Live Server</li>
+            <li>O envíame el mensaje de error que veas</li>
+        </ol>
+
+        <div style="text-align: center; margin-top: 40px;">
+            <button onclick="window.location.href='http://localhost:8000'">
+                🚀 Intentar abrir http://localhost:8000
+            </button>
+            <button onclick="window.location.href='test-supabase.html'">
+                🧪 Ver test de conexión
+            </button>
+        </div>
+    </div>
+</body>
+</html>

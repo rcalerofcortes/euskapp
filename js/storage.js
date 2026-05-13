@@ -184,7 +184,7 @@ const Storage = {
     },
 
     // Save custom phrase
-    saveCustomPhrase(euskera, castellano, euskeraAlternatives = [], castellanoAlternatives = []) {
+    saveCustomPhrase(euskera, castellano, euskeraAlternatives = [], castellanoAlternatives = [], note = '') {
         const customPhrases = this.getCustomPhrases();
         const newId = customPhrases.length > 0 
             ? Math.max(...customPhrases.map(p => p.id)) + 1 
@@ -206,6 +206,11 @@ const Storage = {
             newPhrase.castellanoAlternatives = castellanoAlternatives;
         }
         
+        // Add note if provided
+        if (note && note.length > 0) {
+            newPhrase.note = note.trim();
+        }
+        
         customPhrases.push(newPhrase);
         localStorage.setItem('customPhrases', JSON.stringify(customPhrases));
         return newPhrase;
@@ -222,5 +227,40 @@ const Storage = {
         let customPhrases = this.getCustomPhrases();
         customPhrases = customPhrases.filter(p => p.id !== id);
         localStorage.setItem('customPhrases', JSON.stringify(customPhrases));
+    },
+
+    // Save current phrase index
+    saveCurrentPhraseIndex(index) {
+        const username = this.getCurrentUser();
+        if (!username) return;
+        
+        const phraseProgress = this.getPhraseProgress();
+        phraseProgress[username] = index;
+        localStorage.setItem('phraseProgress', JSON.stringify(phraseProgress));
+    },
+
+    // Get current phrase index
+    getCurrentPhraseIndex() {
+        const username = this.getCurrentUser();
+        if (!username) return 0;
+        
+        const phraseProgress = this.getPhraseProgress();
+        return phraseProgress[username] || 0;
+    },
+
+    // Get all phrase progress
+    getPhraseProgress() {
+        const progress = localStorage.getItem('phraseProgress');
+        return progress ? JSON.parse(progress) : {};
+    },
+
+    // Reset phrase index to start from beginning
+    resetPhraseIndex() {
+        const username = this.getCurrentUser();
+        if (!username) return;
+        
+        const phraseProgress = this.getPhraseProgress();
+        phraseProgress[username] = 0;
+        localStorage.setItem('phraseProgress', JSON.stringify(phraseProgress));
     }
 };

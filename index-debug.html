@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EuskApp - Debug Mode</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+        <div style="padding: 40px; text-align: center;">
+            <h1 style="color: #667eea;">Loading EuskApp...</h1>
+            <p id="status">Initializing...</p>
+            <div id="errors" style="color: red; margin-top: 20px; text-align: left; max-width: 600px; margin: 20px auto;"></div>
+        </div>
+    </div>
+
+    <script>
+        const statusEl = document.getElementById('status');
+        const errorsEl = document.getElementById('errors');
+        
+        function log(msg) {
+            console.log(msg);
+            statusEl.textContent = msg;
+        }
+        
+        function error(msg) {
+            console.error(msg);
+            errorsEl.innerHTML += `<p>❌ ${msg}</p>`;
+        }
+        
+        // Override console.error to catch all errors
+        const originalError = console.error;
+        console.error = function(...args) {
+            errorsEl.innerHTML += `<p style="background: #ffebee; padding: 10px; border-radius: 4px;">❌ ${args.join(' ')}</p>`;
+            originalError.apply(console, args);
+        };
+        
+        // Catch all unhandled errors
+        window.addEventListener('error', function(e) {
+            error(`Error: ${e.message} at ${e.filename}:${e.lineno}`);
+        });
+        
+        window.addEventListener('unhandledrejection', function(e) {
+            error(`Unhandled Promise: ${e.reason}`);
+        });
+        
+        log('Step 1: Loading Supabase SDK...');
+    </script>
+    
+    <!-- Load Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" 
+            onload="log('✅ Supabase SDK loaded')" 
+            onerror="error('Failed to load Supabase SDK from CDN')"></script>
+    
+    <script>
+        // Wait a bit for Supabase to be available
+        setTimeout(function() {
+            log('Step 2: Checking Supabase availability...');
+            
+            if (typeof window.supabase === 'undefined') {
+                error('Supabase library not available!');
+                return;
+            }
+            
+            log('✅ Supabase library available');
+            log('Step 3: Loading app scripts...');
+            
+            // Load scripts dynamically with error handling
+            const scripts = [
+                'js/supabase-client.js',
+                'js/storage.js',
+                'js/data.js',
+                'js/screens/login.js',
+                'js/screens/menu.js',
+                'js/screens/study.js',
+                'js/screens/phrases.js',
+                'js/screens/addcontent.js',
+                'js/screens/challenges.js',
+                'js/screens/statistics.js',
+                'js/app.js'
+            ];
+            
+            let loadedCount = 0;
+            
+            function loadNextScript(index) {
+                if (index >= scripts.length) {
+                    log('✅ All scripts loaded successfully!');
+                    log('Starting app...');
+                    return;
+                }
+                
+                const script = document.createElement('script');
+                script.src = scripts[index];
+                
+                script.onload = function() {
+                    loadedCount++;
+                    log(`✅ Loaded ${scripts[index]} (${loadedCount}/${scripts.length})`);
+                    loadNextScript(index + 1);
+                };
+                
+                script.onerror = function() {
+                    error(`Failed to load ${scripts[index]}`);
+                    // Continue anyway
+                    loadNextScript(index + 1);
+                };
+                
+                document.body.appendChild(script);
+            }
+            
+            loadNextScript(0);
+            
+        }, 500); // Wait 500ms for Supabase to initialize
+    </script>
+</body>
+</html>

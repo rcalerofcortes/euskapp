@@ -8,6 +8,9 @@ let phrasesViewMode = 'practice'; // 'practice' or 'review'
 function renderPhrasesScreen() {
     const app = document.getElementById('app');
     
+    // Load saved progress
+    currentPhraseIndex = Storage.getCurrentPhraseIndex();
+    
     app.innerHTML = `
         <div class="screen">
             <div class="header">
@@ -45,6 +48,11 @@ function renderPracticeMode() {
     const content = document.getElementById('phrases-content');
     
     content.innerHTML = `
+        <div style="text-align: center; margin-bottom: 15px;">
+            <button class="btn btn-secondary" onclick="restartFromBeginning()" style="font-size: 13px; padding: 6px 12px;">
+                ↺ Restart from Beginning
+            </button>
+        </div>
         <div class="phrase-counter" id="phrase-counter"></div>
         <div class="phrase-container" id="phrase-content"></div>
         <div class="phrase-navigation">
@@ -56,16 +64,37 @@ function renderPracticeMode() {
     loadPhrase();
 }
 
-function renderReviewMode() {
+async function renderReviewMode() {
     const content = document.getElementById('phrases-content');
-    const correctPhraseIds = Storage.getCorrectPhrases();
-    const allPhrases = getAllPhrases();
-    const correctPhrases = allPhrases.filter(phrase => correctPhraseIds.includes(phrase.id));
     
-    if (correctPhrases.length === 0) {
+    // Show loading
+    content.innerHTML = `
+        <div style="text-align: center; padding: 60px 20px;">
+            <div style="font-size: 40px; margin-bottom: 20px;">⏳</div>
+            <p style="color: #666;">Loading your progress...</p>
+        </div>
+    `;
+    
+    // Get correct phrases from Supabase
+    const result = await SupabaseProgress.getCorrectPhrases();
+    
+    if (!result.success) {
         content.innerHTML = `
             <div style="text-align: center; padding: 60px 20px;">
-                <div style="font-size: 60px; margin-bottom: 20px;">***</div>
+                <div style="font-size: 60px; margin-bottom: 20px;">⚠️</div>
+                <h3 style="color: #f44336; margin-bottom: 15px;">Error loading progress</h3>
+                <p style="color: #666; font-size: 16px;">Please try again later</p>
+            </div>
+        `;
+        return;
+    }
+    
+    const correctPhrasesData = result.data || [];
+    
+    if (correctPhrasesData.length === 0) {
+        content.innerHTML = `
+            <div style="text-align: center; padding: 60px 20px;">
+                <div style="font-size: 60px; margin-bottom: 20px;">📚</div>
                 <h3 style="color: #667eea; margin-bottom: 15px;">No phrases yet</h3>
                 <p style="color: #666; font-size: 16px; margin-bottom: 20px;">
                     Start practicing phrases and the ones you get correct<br>
@@ -77,20 +106,20 @@ function renderReviewMode() {
         return;
     }
     
-    const progress = Storage.getProgress();
-    const username = Storage.getCurrentUser();
-    const userProgress = progress[username] || {};
-    
     content.innerHTML = `
         <div style="margin-bottom: 20px;">
             <p style="color: #667eea; font-size: 18px; font-weight: 600; text-align: center;">
-                You've mastered ${correctPhrases.length} phrase${correctPhrases.length !== 1 ? 's' : ''}!
+                You've mastered ${correctPhrasesData.length} phrase${correctPhrasesData.length !== 1 ? 's' : ''}!
             </p>
         </div>
         
         <div style="display: flex; flex-direction: column; gap: 15px;">
-            ${correctPhrases.map(phrase => {
-                const stats = userProgress[phrase.id] || { correct: 0, incorrect: 0 };
+            ${correctPhrasesData.map(item => {
+                const phrase = item.phrases; // Supabase join returns nested object
+                const stats = {
+                    correct: item.correct_count,
+                    incorrect: item.incorrect_count
+                };
                 const total = stats.correct + stats.incorrect;
                 const accuracy = total > 0 ? ((stats.correct / total) * 100).toFixed(0) : 0;
                 
@@ -145,6 +174,9 @@ function loadPhrase() {
     
     currentPhrase = phrases[currentPhraseIndex];
     hasChecked = false;
+    
+    // Save progress
+    Storage.saveCurrentPhraseIndex(currentPhraseIndex);
     
     // Alternate translation direction randomly
     translationDirection = Math.random() > 0.5 ? 'euskera-castellano' : 'castellano-euskera';
@@ -234,8 +266,8 @@ function checkAnswer() {
     
     hasChecked = true;
     
-    // Save progress
-    Storage.saveProgress(currentPhrase.id, isCorrect);
+    // Save progress to Supabase (async but don't wait)
+    saveProgressAsync(currentPhrase.id, isCorrect);
     
     if (isCorrect) {
         // Correct answer
@@ -265,10 +297,17 @@ function checkAnswer() {
                </div>`
             : '';
         
+        const noteText = currentPhrase.note 
+            ? `<div style="margin-top: 12px; padding: 10px; background: #f0f7ff; border-left: 3px solid #667eea; border-radius: 4px; color: #333;">
+                <strong style="color: #667eea;">📝 Note:</strong> ${currentPhrase.note}
+               </div>`
+            : '';
+        
         feedback.innerHTML = `
             <div class="phrase-feedback correct">
                 <strong>Correct!</strong>
                 ${alternativesText}
+                ${noteText}
             </div>
         `;
     } else {
@@ -280,6 +319,12 @@ function checkAnswer() {
                </div>`
             : '';
         
+        const noteText = currentPhrase.note 
+            ? `<div style="margin-top: 12px; padding: 10px; background: #fff4e6; border-left: 3px solid #ff9800; border-radius: 4px; color: #333;">
+                <strong style="color: #ff9800;">📝 Note:</strong> ${currentPhrase.note}
+               </div>`
+            : '';
+        
         feedback.innerHTML = `
             <div class="phrase-feedback incorrect">
                 <strong>Incorrect!</strong>
@@ -287,6 +332,7 @@ function checkAnswer() {
                     <strong>Correct answer:</strong> ${correctAnswer}
                 </div>
                 ${alternativesText}
+                ${noteText}
             </div>
         `;
     }
@@ -303,6 +349,30 @@ function nextPhrase() {
 function previousPhrase() {
     currentPhraseIndex--;
     loadPhrase();
+}
+
+function restartFromBeginning() {
+    if (confirm('¿Quieres reiniciar desde la primera frase?')) {
+        currentPhraseIndex = 0;
+        Storage.resetPhraseIndex();
+        loadPhrase();
+    }
+}
+
+// Async function to save progress to Supabase
+async function saveProgressAsync(phraseId, isCorrect) {
+    try {
+        // Save phrase progress
+        await SupabaseProgress.saveProgress(phraseId, isCorrect);
+        
+        // Save daily progress
+        await SupabaseDailyProgress.saveDailyProgress(isCorrect);
+        
+        console.log('Progress saved successfully');
+    } catch (error) {
+        console.error('Error saving progress:', error);
+        // Don't show error to user, fail silently
+    }
 }
 
 function updateCounter() {

@@ -1,0 +1,13 @@
+# Vercel
+.vercel
+
+# Local
+.env.local
+.env
+node_modules/
+
+# Testing
+test-supabase.html
+index-debug.html
+README_START.html
+START_SERVER.bat

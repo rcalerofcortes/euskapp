@@ -3,7 +3,7 @@ let addContentDirection = 'castellano-euskera'; // Direction for adding content
 
 function renderAddContentScreen() {
     const app = document.getElementById('app');
-    const customPhrases = Storage.getCustomPhrases();
+    const allPhrases = getAllPhrases();
     
     app.innerHTML = `
         <div class="screen">
@@ -35,24 +35,17 @@ function renderAddContentScreen() {
                 
                 <div id="add-phrase-message" style="margin-top: 15px; display: none;"></div>
                 
-                <div style="margin-top: 30px; padding-top: 30px; border-top: 2px solid #e0e0e0;">
-                    <button class="btn btn-primary" onclick="handleUpdateDataFile()" style="width: 100%; background: #4caf50; margin-bottom: 10px;">
-                        💾 Update data.js File (${getAllPhrases().length} phrases)
-                    </button>
-                    <p style="color: #666; font-size: 13px; text-align: center; margin-bottom: 20px;">
-                        Updates the data.js file in your project with all phrases
-                    </p>
-                    
-                    <button class="btn btn-primary" onclick="handleDownloadDataFile()" style="width: 100%; background: #ff9800;">
-                        📥 Download data.js (Backup)
-                    </button>
-                    <p style="color: #666; font-size: 13px; text-align: center; margin-top: 10px;">
-                        Download a backup copy of data.js with all ${getAllPhrases().length} phrases
-                    </p>
+                <div style="margin-top: 30px; padding: 20px; background: #f0f7ff; border-radius: 12px; text-align: center;">
+                    <div style="font-size: 24px; font-weight: bold; color: #667eea; margin-bottom: 5px;">
+                        ${allPhrases.length}
+                    </div>
+                    <div style="color: #666; font-size: 14px;">
+                        Total phrases in database
+                    </div>
                 </div>
             </div>
             
-            ${customPhrases.length > 0 ? renderCustomPhrasesList(customPhrases) : renderEmptyCustomPhrases()}
+            ${allPhrases.length > 0 ? renderAllPhrasesList(allPhrases) : renderEmptyPhrases()}
         </div>
     `;
     
@@ -101,14 +94,64 @@ function renderAddContentForm() {
                 style="width: 100%; margin-bottom: 20px; background: #e0e0e0; color: #333;">
             + Add Alternative in ${transLang}
         </button>
+        
+        <div class="form-group">
+            <label for="phrase-note">Note (Optional)</label>
+            <textarea id="phrase-note" 
+                      placeholder="Add a grammar note or explanation (e.g., why an alternative is valid)" 
+                      autocomplete="off"
+                      style="width: 100%; min-height: 60px; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-family: inherit; resize: vertical;"></textarea>
+        </div>
     `;
 }
 
 function renderEmptyCustomPhrases() {
     return `
         <div style="text-align: center; padding: 40px 20px; margin-top: 30px; background: #f8f9fa; border-radius: 12px;">
-            <h3 style="color: #667eea; margin-bottom: 10px;">No custom phrases yet</h3>
+            <h3 style="color: #667eea; margin-bottom: 10px;">No phrases yet</h3>
             <p style="color: #666;">Add your first phrase above to get started!</p>
+        </div>
+    `;
+}
+
+function renderEmptyPhrases() {
+    return `
+        <div style="text-align: center; padding: 40px 20px; margin-top: 30px; background: #f8f9fa; border-radius: 12px;">
+            <h3 style="color: #667eea; margin-bottom: 10px;">No phrases yet</h3>
+            <p style="color: #666;">Add your first phrase above to get started!</p>
+        </div>
+    `;
+}
+
+function renderAllPhrasesList(phrases) {
+    return `
+        <div style="margin-top: 40px;">
+            <h3 style="color: #333; margin-bottom: 20px;">All Phrases (${phrases.length})</h3>
+            
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                ${phrases.map(phrase => `
+                    <div style="background: white; border: 2px solid #e0e0e0; border-radius: 8px; padding: 15px;">
+                        <div style="flex: 1;">
+                            <div style="font-size: 16px; font-weight: 600; color: #333; margin-bottom: 5px;">
+                                ${phrase.euskera}
+                            </div>
+                            ${phrase.euskeraAlternatives && phrase.euskeraAlternatives.length > 0 ? `
+                                <div style="font-size: 12px; color: #999; font-style: italic; margin-bottom: 5px;">
+                                    Also: ${phrase.euskeraAlternatives.join(', ')}
+                                </div>
+                            ` : ''}
+                            <div style="font-size: 14px; color: #667eea;">
+                                ${phrase.castellano}
+                            </div>
+                            ${phrase.note ? `
+                                <div style="font-size: 12px; color: #333; margin-top: 8px; padding: 6px 8px; background: #f0f7ff; border-radius: 4px; border-left: 3px solid #667eea;">
+                                    <strong style="color: #667eea;">📝</strong> ${phrase.note}
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
         </div>
     `;
 }
@@ -176,6 +219,11 @@ function renderCustomPhrasesList(phrases) {
                                     Also: ${phrase.castellanoAlternatives.join(', ')}
                                 </div>
                             ` : ''}
+                            ${phrase.note ? `
+                                <div style="font-size: 12px; color: #333; margin-top: 8px; padding: 6px 8px; background: #f0f7ff; border-radius: 4px; border-left: 3px solid #667eea;">
+                                    <strong style="color: #667eea;">📝</strong> ${phrase.note}
+                                </div>
+                            ` : ''}
                         </div>
                         <button class="btn btn-danger" onclick="handleDeletePhrase(${phrase.id})" style="background: #f44336; padding: 8px 15px; font-size: 12px;">
                             Delete
@@ -187,7 +235,7 @@ function renderCustomPhrasesList(phrases) {
     `;
 }
 
-function handleAddPhrase() {
+async function handleAddPhrase() {
     const mainPhrase = document.getElementById('phrase-main').value.trim();
     const translationPhrase = document.getElementById('phrase-translation').value.trim();
     const messageDiv = document.getElementById('add-phrase-message');
@@ -226,22 +274,42 @@ function handleAddPhrase() {
     const euskera = isEusToCas ? mainPhrase : translationPhrase;
     const castellano = isEusToCas ? translationPhrase : mainPhrase;
     const euskeraAlternatives = isEusToCas ? mainAlternatives : translationAlternatives;
-    const castellanoAlternatives = isEusToCas ? translationAlternatives : mainAlternatives;
     
-    // Save phrase
+    // Get note if provided
+    const noteInput = document.getElementById('phrase-note');
+    const note = noteInput ? noteInput.value.trim() : '';
+    
+    // Show loading
+    showAddPhraseMessage('Adding phrase...', 'loading');
+    
+    // Save phrase to Supabase
     try {
-        Storage.saveCustomPhrase(euskera, castellano, euskeraAlternatives, castellanoAlternatives);
-        showAddPhraseMessage('Phrase added successfully!', 'success');
+        const result = await SupabasePhrases.addPhrase(
+            euskera, 
+            castellano, 
+            euskeraAlternatives.length > 0 ? euskeraAlternatives : null,
+            note || null
+        );
         
-        // Clear form
-        clearAddPhraseForm();
-        
-        // Refresh the screen to show new phrase
-        setTimeout(() => {
-            renderAddContentScreen();
-        }, 1000);
+        if (result.success) {
+            // Reload phrases from Supabase
+            await loadPhrasesFromSupabase();
+            
+            showAddPhraseMessage('Phrase added successfully!', 'success');
+            
+            // Clear form
+            clearAddPhraseForm();
+            
+            // Refresh the screen to show new phrase
+            setTimeout(() => {
+                renderAddContentScreen();
+            }, 1000);
+        } else {
+            showAddPhraseMessage('Error adding phrase: ' + (result.error || 'Unknown error'), 'error');
+        }
     } catch (error) {
         showAddPhraseMessage('Error adding phrase. Please try again.', 'error');
+        console.error('Error adding phrase:', error);
     }
 }
 
@@ -249,8 +317,10 @@ function clearAddPhraseForm() {
     // Clear main fields
     const mainInput = document.getElementById('phrase-main');
     const translationInput = document.getElementById('phrase-translation');
+    const noteInput = document.getElementById('phrase-note');
     if (mainInput) mainInput.value = '';
     if (translationInput) translationInput.value = '';
+    if (noteInput) noteInput.value = '';
     
     // Clear all alternative fields
     document.getElementById('alternatives-main-container').innerHTML = '';
@@ -276,6 +346,9 @@ function showAddPhraseMessage(message, type) {
     
     if (type === 'success') {
         messageDiv.style.background = '#4caf50';
+        messageDiv.style.color = 'white';
+    } else if (type === 'loading') {
+        messageDiv.style.background = '#667eea';
         messageDiv.style.color = 'white';
     } else {
         messageDiv.style.background = '#f44336';
