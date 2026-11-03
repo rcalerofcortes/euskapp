@@ -114,12 +114,24 @@ async function handleRegister() {
         registerBtn.disabled = false;
 
         if (result.success) {
-            if (result.user) {
-                console.log('✅ User created:', result.user.id);
-                showSuccess('Account created! Please check your email to confirm your account, then login.');
+            console.log('✅ User created:', result.user?.id);
+            
+            // Check if user was auto-confirmed and logged in
+            if (result.session) {
+                console.log('✅ Session created automatically - user is logged in!');
+                console.log('📧 Email confirmed:', result.user?.email_confirmed_at ? 'YES' : 'NO');
+                showSuccess('Account created and logged in successfully!');
+                setTimeout(() => navigateTo('menu'), 1500);
             } else {
-                console.warn('⚠️ Success but no user data returned');
-                showSuccess('Account created! You can now login.');
+                console.log('⚠️ No session - email confirmation may be required');
+                console.log('📧 Email confirmed:', result.user?.email_confirmed_at ? 'YES' : 'NO');
+                console.log('⚠️ User state:', result.user?.confirmed_at ? 'CONFIRMED' : 'UNCONFIRMED');
+                
+                if (!result.user?.email_confirmed_at) {
+                    showError('Check your email to confirm your account before logging in. (Note: Supabase free tier limit is 2 emails per hour)');
+                } else {
+                    showSuccess('Account created successfully! You can now login.');
+                }
             }
         } else {
             console.error('❌ Registration failed:', result.error);

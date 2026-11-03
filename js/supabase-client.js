@@ -45,12 +45,24 @@ const SupabaseAuth = {
                 email: email,
                 password: password,
                 options: {
-                    data: metadata // Additional user metadata
+                    data: metadata,
+                    emailRedirectTo: 'https://euskapp.vercel.app'
                 }
             });
             
             if (error) throw error;
-            return { success: true, user: data.user };
+            
+            // Log detailed user state for debugging
+            console.log('📧 User created - Details:', {
+                id: data.user?.id,
+                email: data.user?.email,
+                confirmed_at: data.user?.confirmed_at,
+                email_confirmed_at: data.user?.email_confirmed_at,
+                last_sign_in_at: data.user?.last_sign_in_at,
+                created_at: data.user?.created_at
+            });
+            
+            return { success: true, user: data.user, session: data.session };
         } catch (error) {
             console.error('Sign up error:', error);
             return { success: false, error: error.message };
@@ -174,6 +186,53 @@ const SupabasePhrases = {
             return { success: true, data: data[0] };
         } catch (error) {
             console.error('Add phrase error:', error);
+            return { success: false, error: error.message };
+        }
+    }
+};
+
+// =====================================================
+// DATABASE FUNCTIONS - VOCABULARY
+// =====================================================
+
+const SupabaseVocabulary = {
+    // Get all vocabulary words
+    async getAllVocabulary() {
+        try {
+            const { data, error } = await supabase
+                .from('vocabulary')
+                .select('*')
+                .order('id', { ascending: true });
+            
+            if (error) throw error;
+            return { success: true, data };
+        } catch (error) {
+            console.error('Get vocabulary error:', error);
+            return { success: false, error: error.message };
+        }
+    },
+
+    // Add a new vocabulary word
+    async addVocabularyWord(euskera, castellano, euskeraAlternatives = null, castellanoAlternatives = null, example = null, note = null) {
+        try {
+            const { data, error } = await supabase
+                .from('vocabulary')
+                .insert([
+                    {
+                        euskera,
+                        castellano,
+                        euskera_alternatives: euskeraAlternatives,
+                        castellano_alternatives: castellanoAlternatives,
+                        example,
+                        note
+                    }
+                ])
+                .select();
+            
+            if (error) throw error;
+            return { success: true, data: data[0] };
+        } catch (error) {
+            console.error('Add vocabulary error:', error);
             return { success: false, error: error.message };
         }
     }
@@ -401,6 +460,7 @@ const SupabaseDailyProgress = {
 // Export all modules
 window.SupabaseAuth = SupabaseAuth;
 window.SupabasePhrases = SupabasePhrases;
+window.SupabaseVocabulary = SupabaseVocabulary;
 window.SupabaseProgress = SupabaseProgress;
 window.SupabaseDailyProgress = SupabaseDailyProgress;
 

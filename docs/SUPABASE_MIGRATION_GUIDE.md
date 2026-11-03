@@ -2,21 +2,20 @@
 
 ## ⚠️ IMPORTANTE: Cómo Abrir la Aplicación
 
-**NO puedes abrir `index.html` haciendo doble clic.** Los navegadores bloquean JavaScript cuando usas `file://` por seguridad.
+**NO puedes abrir `index.html` haciendo doble clic.** Los navegadores bloquean JavaScript cuando usas `file://` por seguridad. Necesitas un servidor local.
 
-### 🚀 Solución Rápida (Recomendada):
+### 🚀 Solución Rápida (Python):
 
-1. **Haz doble clic en `START_SERVER.bat`**
-2. Se abrirá una ventana negra (déjala abierta)
-3. Abre tu navegador en: **http://localhost:8000**
-4. ¡Listo!
+```bash
+python -m http.server 8000
+```
+
+Luego abre tu navegador en: **http://localhost:8000**
 
 ### 🎨 Alternativa (VS Code):
 
 1. Instala la extensión "Live Server" en VS Code
 2. Clic derecho en `index.html` → "Open with Live Server"
-
-Para más opciones, abre el archivo [README_START.html](README_START.html)
 
 ---
 

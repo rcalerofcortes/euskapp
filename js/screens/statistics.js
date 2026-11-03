@@ -183,12 +183,4 @@ function formatDate(dateString) {
     }
 }
 
-function handleResetAllStatistics() {
-    alert('Feature coming soon: Reset statistics will be implemented in a future update');
-    // TODO: Implement delete all statistics from Supabase
-}
 
-function handleResetDayStatistics(date) {
-    alert('Feature coming soon: Reset day statistics will be implemented in a future update');
-    // TODO: Implement delete specific day statistics from Supabase
-}

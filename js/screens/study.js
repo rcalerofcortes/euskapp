@@ -33,7 +33,6 @@ function renderStudyScreen() {
                     <p>Coming soon</p>
                 </div>
             </div>
-            </div>
         </div>
     `;
 }

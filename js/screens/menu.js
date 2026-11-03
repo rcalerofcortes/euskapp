@@ -54,23 +54,6 @@ async function renderMenuScreen() {
     `;
 }
 
-function getUserStatsHTML() {
-    const stats = Storage.getUserStats();
-    
-    if (!stats || stats.totalAttempts === 0) {
-        return '<p style="color: #666;">You haven\'t practiced yet. Start now!</p>';
-    }
-    
-    const accuracy = ((stats.totalCorrect / stats.totalAttempts) * 100).toFixed(1);
-    
-    return `
-        <h3 style="color: #667eea; margin-bottom: 10px;">Your Statistics</h3>
-        <p style="color: #333;">Correct: <strong>${stats.totalCorrect}</strong></p>
-        <p style="color: #333;">Incorrect: <strong>${stats.totalIncorrect}</strong></p>
-        <p style="color: #333;">Accuracy: <strong>${accuracy}%</strong></p>
-    `;
-}
-
 async function handleLogout() {
     if (confirm('Are you sure you want to logout?')) {
         const result = await SupabaseAuth.signOut();

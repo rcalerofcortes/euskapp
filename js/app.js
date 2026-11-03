@@ -35,6 +35,9 @@ async function navigateTo(route) {
         return;
     }
     
+    // Keep the current user id available for user-scoped local storage
+    window.currentUserId = session?.user?.id || null;
+    
     currentRoute = route;
     const result = routes[route]();
     
@@ -57,10 +60,13 @@ async function initApp() {
             throw new Error('loadPhrasesFromSupabase not loaded');
         }
         
-        console.log('Loading phrases from Supabase...');
-        // Load phrases from Supabase
+        console.log('Loading content from Supabase...');
+        // Load phrases and vocabulary from Supabase
         await loadPhrasesFromSupabase();
-        console.log('Phrases loaded successfully');
+        if (typeof loadVocabularyFromSupabase === 'function') {
+            await loadVocabularyFromSupabase();
+        }
+        console.log('Content loaded successfully');
         
         console.log('Checking authentication session...');
         const session = await SupabaseAuth.getSession();

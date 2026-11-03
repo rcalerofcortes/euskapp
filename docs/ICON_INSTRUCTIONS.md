@@ -1,13 +1,15 @@
 # How to Create Your App Icons
 
+All app icons live in `assets/icons/`.
+
 ## Quick Option: Use Online Tool
 
-1. **Open the SVG file** `icon.svg` in your browser
+1. **Open the SVG file** `assets/icons/icon.svg` in your browser
 2. **Go to**: https://realfavicongenerator.net/
-3. **Upload** `icon.svg`
+3. **Upload** `assets/icons/icon.svg`
 4. **Generate** the icons
 5. **Download** the package
-6. **Replace** `icon-192.png` and `icon-512.png` with the generated files
+6. **Replace** `assets/icons/icon-192.png` and `assets/icons/icon-512.png` with the generated files
 
 ## Or Create Your Own Logo:
 
@@ -16,8 +18,8 @@
 2. Create a 512x512px design
 3. Add "EU" text or your own logo
 4. Export as PNG
-5. Save as `icon-512.png`
-6. Resize to 192x192px → save as `icon-192.png`
+5. Save as `assets/icons/icon-512.png`
+6. Resize to 192x192px → save as `assets/icons/icon-192.png`
 
 ### Option 2: Use Any Image Editor
 1. Create a 512x512px image
@@ -27,19 +29,19 @@
 5. Create both sizes (512x512 and 192x192)
 
 ### Option 3: Use the SVG I Created
-1. Open `icon.svg` in your browser
+1. Open `assets/icons/icon.svg` in your browser
 2. Right-click → "Save as PNG" (if available)
 3. Or take a screenshot and crop to 512x512
 4. Use an online resizer for the 192x192 version
 
 ## Files Needed:
-- `icon-192.png` - 192x192px (for mobile home screen)
-- `icon-512.png` - 512x512px (for high-res displays)
+- `assets/icons/icon-192.png` - 192x192px (for mobile home screen)
+- `assets/icons/icon-512.png` - 512x512px (for high-res displays)
 
 ## After Creating Icons:
 ```bash
-git add icon-192.png icon-512.png manifest.json
-git commit -m "Add app icons"
+git add assets/icons/ manifest.json
+git commit -m "Update app icons"
 git push origin main
 ```
 

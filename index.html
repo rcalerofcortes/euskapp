@@ -4,39 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EuskApp - Learn Basque</title>
-    
-    <!-- Manifest for PWA -->
+
+    <!-- PWA manifest -->
     <link rel="manifest" href="manifest.json">
-    
-    <!-- Icons for different devices -->
-    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
-    <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
-    <link rel="apple-touch-icon" href="icon-192.png">
-    
-    <!-- Theme color for mobile browsers -->
+
+    <!-- App icons -->
+    <link rel="icon" type="image/png" sizes="192x192" href="assets/icons/icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="assets/icons/icon-512.png">
+    <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
+
+    <!-- Mobile browser theming -->
     <meta name="theme-color" content="#667eea">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="EuskApp">
-    
+
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <!-- Main container where screens are loaded -->
+    <!-- Main container where screens are rendered -->
     <div id="app"></div>
 
-    <!-- Scripts -->
-    <!-- Load Supabase SDK first -->
+    <!-- Supabase SDK (must load before app scripts) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <!-- Wait for page to load before initializing -->
-    <script>
-        // This ensures all scripts load in order and Supabase is ready
-        window.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM loaded, Supabase available:', !!window.supabase);
-        });
-    </script>
-    
+
+    <!-- App scripts (defer preserves load order) -->
     <script src="js/supabase-client.js" defer></script>
     <script src="js/storage.js" defer></script>
     <script src="js/data.js" defer></script>
@@ -48,18 +40,5 @@
     <script src="js/screens/challenges.js" defer></script>
     <script src="js/screens/statistics.js" defer></script>
     <script src="js/app.js" defer></script>
-    
-    <!-- Unregister Service Worker (temporary) -->
-    <script>
-        // Remove old service worker if it exists
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                for(let registration of registrations) {
-                    registration.unregister();
-                    console.log('Service Worker unregistered');
-                }
-            });
-        }
-    </script>
 </body>
 </html>

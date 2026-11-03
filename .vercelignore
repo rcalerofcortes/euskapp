@@ -1,13 +1,13 @@
 # Vercel
 .vercel
 
-# Local
+# Local env
 .env.local
 .env
 node_modules/
 
-# Testing
-test-supabase.html
-index-debug.html
-README_START.html
-START_SERVER.bat
+# Not part of the deployed site
+docs/
+database/
+capacitor.json
+assets/icons/icon.svg

@@ -57,7 +57,7 @@ Si tu móvil y PC están en la misma WiFi, puedes acceder sin desplegar.
    - Busca tu IP local (algo como: `192.168.1.100`)
 
 2. **Iniciar el servidor**
-   - Ejecuta `START_SERVER.bat` como siempre
+   - Ejecuta `python -m http.server 8000` en la raíz del proyecto
    - Pero ahora, en tu móvil, abre:
      ```
      http://192.168.1.100:8000

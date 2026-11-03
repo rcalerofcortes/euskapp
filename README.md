@@ -1,273 +1,114 @@
-# EuskApp - Learn Basque Application
+# EuskApp — Learn Basque
 
-A simple and effective web/mobile application to learn Basque (euskera) through phrase practice with integrated statistics and review system.
+A lightweight web/mobile app to learn Basque (euskera) through phrase practice, with cloud-synced progress and daily statistics.
 
-## ?? Features
+## Features
 
-- ? **User Authentication**: Login and registration system
-- ? **Phrase Practice**: Translate between Basque and Spanish
-- ? **Smart Validation**: Ignores accents, punctuation, and case
-- ? **Visual Feedback**: Green/red borders based on correctness
-- ? **Error Detection**: Word-by-word comparison with detailed feedback
-- ? **My Correct Phrases**: Review system for mastered phrases
-- ? **Daily Statistics**: Track your progress day by day
-- ? **Overall Analytics**: View total performance and accuracy
-- ? **Reset Options**: Reset all data, all stats, or specific days
-- ? **Local Storage**: Data saved in browser/device
-- ? **Responsive Design**: Works on mobile, tablet, and desktop
-- ? **Progressive**: Ready to convert to native app
+- **Authentication** — email/password login and registration via Supabase Auth
+- **Phrase practice** — translate between Basque and Spanish in both directions
+- **Smart validation** — ignores accents, punctuation, case, and extra spaces, and accepts alternative translations
+- **Visual feedback** — green/red cards with the correct answer and optional grammar notes
+- **My correct phrases** — review the phrases you've answered correctly, with per-phrase accuracy
+- **Daily statistics** — day-by-day progress plus overall accuracy
+- **Add content** — add your own phrases (with alternatives and notes) to the shared database
+- **Cloud storage** — progress and phrases live in Supabase and sync across devices
+- **Responsive & installable** — works on mobile, tablet, and desktop, and is a PWA
 
-## ?? Tecnolog�as Utilizadas
+## Tech stack
 
-- **HTML5**: Estructura de la aplicaci�n
-- **CSS3**: Estilos modernos y responsive
-- **JavaScript (Vanilla)**: L�gica de la aplicaci�n
-- **LocalStorage**: Almacenamiento de datos local
-- **Capacitor** (opcional): Para exportar a Play Store/App Store
+- **HTML5 / CSS3 / vanilla JavaScript** — no build step, no framework
+- **Supabase** — authentication and PostgreSQL database
+- **Vercel** — static hosting
+- **Capacitor** (optional) — package as a native Android/iOS app
 
-## ?? Estructura del Proyecto
+## Project structure
 
 ```
 euskapp/
-?
-??? index.html              # Punto de entrada de la aplicaci�n
-??? styles.css              # Estilos globales
-?
-??? js/
-?   ??? app.js             # Sistema de navegaci�n
-?   ??? storage.js         # Gesti�n de datos locales
-?   ??? data.js            # Base de datos de frases
-?   ?
-?   ??? screens/
-?       ??? login.js       # Pantalla de login/registro
-?       ??? menu.js        # Men� principal
-?       ??? study.js       # Categor�as de estudio
-?       ??? phrases.js     # Pr�ctica de frases
-?       ??? challenges.js  # Retos (pr�ximamente)
-?
-??? capacitor.json         # Configuraci�n para apps nativas (opcional)
+├── index.html              # App entry point
+├── styles.css              # Global styles
+├── manifest.json           # PWA manifest
+├── vercel.json             # Vercel deployment config
+├── capacitor.json          # Native app config (optional)
+│
+├── assets/
+│   └── icons/              # App icons (PWA + favicon) and SVG source
+│
+├── js/
+│   ├── app.js              # Navigation / routing + app bootstrap
+│   ├── supabase-client.js  # Supabase client + Auth/Phrases/Progress APIs
+│   ├── storage.js          # Local storage for the current phrase index
+│   ├── data.js             # Phrase loading + answer comparison helpers
+│   └── screens/
+│       ├── login.js        # Login / registration
+│       ├── menu.js         # Main menu
+│       ├── study.js        # Study categories
+│       ├── phrases.js      # Phrase practice + review
+│       ├── addcontent.js   # Add custom phrases
+│       ├── challenges.js   # Challenges (coming soon)
+│       └── statistics.js   # Daily statistics
+│
+├── database/               # Supabase SQL (schema + seed/maintenance scripts)
+└── docs/                   # Requirements and deployment guides
 ```
 
-## ????? C�mo Usar (Web)
+## Running locally
 
-### Opci�n 1: Abrir directamente
-1. Abre el archivo `index.html` en tu navegador
-2. �Ya est�! La aplicaci�n funcionar�
+Browsers block JavaScript on `file://` URLs, so the app needs a local server.
 
-### Opci�n 2: Con servidor local (recomendado)
-1. Instala un servidor local simple:
-   ```bash
-   # Con Python 3
-   python -m http.server 8000
-   
-   # Con Node.js (si tienes instalado)
-   npx serve
-   ```
-
-2. Abre en el navegador: `http://localhost:8000`
-
-## ?? Exportar a M�vil (Play Store/App Store)
-
-Para convertir la app web en aplicaci�n nativa:
-
-### 1. Instalar Capacitor
 ```bash
-npm install @capacitor/core @capacitor/cli
-npx cap init
+# Python 3
+python -m http.server 8000
+
+# or Node.js
+npx serve
 ```
 
-### 2. A�adir plataformas
-```bash
-# Para Android
-npm install @capacitor/android
-npx cap add android
+Then open `http://localhost:8000`.
 
-# Para iOS (solo en Mac)
-npm install @capacitor/ios
-npx cap add ios
-```
+## Supabase setup
 
-### 3. Compilar y abrir
-```bash
-# Android
-npx cap sync
-npx cap open android
+1. Create a project at [supabase.com](https://supabase.com).
+2. Run the SQL in [`database/supabase-schema.sql`](database/supabase-schema.sql) from the Supabase SQL editor to create the `phrases`, `user_progress`, and `daily_progress` tables with their RLS policies and seed data.
+3. Put your project URL and anon key in `js/supabase-client.js` (`SUPABASE_URL` and `SUPABASE_ANON_KEY`).
 
-# iOSHow It Works
+Additional SQL helpers live in `database/` (e.g. confirming existing users, bulk-inserting phrases).
 
-### Screen 1 - Login
-- Create new account or login
-- Users stored in localStorage
+## Deployment
 
-### Screen 2 - Main Menu
-- **Study**: Access learning categories
-- **Challenges**: Coming soon
-- **Statistics**: View your daily progress and analytics
-- **Reset All Data**: Delete everything (double confirmation)
+The app is a static site served from the repository root (see `vercel.json`). Deploying to Vercel requires no build step — push to the connected branch and Vercel serves the root directory. `docs/` and `database/` are excluded from the deploy via `.vercelignore`.
 
-### Screen 3 - Study
-- **Phrases**: Practice common phrases (active) with review system
-- **Verbs**: Coming soon
-- **Vocabulary**: Coming soon
-- **Review**: Coming soon
+## Adding phrases
 
-### Screen 3.1 - Phrases
-**Two tabs available:**
+Phrases are stored in Supabase. The easiest way to add one is the in-app **Add Content** screen, which writes directly to the database. Alternatively, insert rows into the `phrases` table (see `database/insert-all-phrases.sql` for the format).
 
-**Practice Tab:**
-1. A phrase is shown in Basque or Spanish
-2. Write the translation in the other language
-3. Click **Check** to validate (or press Enter)
-4. If correct ? green border ?
-5. If incorrect ? red border with specific errors highlighted
-6. Use **Clear** to erase and try again
-7. Navigate between phrases with Previous/Next buttons
+## How validation works
 
-**My Correct Phrases Tab:**
-1. See all phrases you've answered correctly
-2. View accuracy percentage per phrase
-3. Review correct/incorrect attempts
-4. Study your mastered phrases anytime
+Answers are normalized before comparison:
 
-### Screen 4 - Statistics
-**Overall Statistics:**
-- Total correct answers
-- Total incorrect answers
-- Overall accuracy percentage
+1. Lowercased and trimmed
+2. Accents removed (`qué` → `que`)
+3. Punctuation removed (`hola, ¿qué tal?` → `hola que tal`)
+4. Multiple spaces collapsed
 
-**Daily Activity:**
-- Day-by-day breakdown
-- Date, accuracy, correct, incorrect, and total per day
-- Reset individual days or all statistics
-- Current day highlighted
+The normalized answer is checked against the main translation and any alternatives, so these all count as correct for "hola que tal": `HOLA QUE TAL`, `hola, qué tal?`, `Hola que tal`.
 
-**Validation Features:**
-- Ignores accents: "qu�" = "que"
-- Ignores punctuation: "Hola, que tal?" = "hola que tal"
-- Case insensitive: "HOLA" = "hola"
-- Smart error detection with word-by-word feedbackcontrario
-3. Haz clic en **Comprobar** para validar
-4. Si es correcto ? rect�ngulo verde ?
-5. Si es incorrecto ? rect�ngulo rojo con errores se�alados
-6. Usa **Limpiar** para borrar tu respuesta
-7. Navega entre frases con los botones
+## Documentation
 
-## ?? A�adir M�s Frases
+- [Project requirements](docs/PROJECT_REQUIREMENTS.md)
+- [Supabase migration guide](docs/SUPABASE_MIGRATION_GUIDE.md)
+- [Mobile deployment guide](docs/MOBILE_DEPLOYMENT_GUIDE.md)
+- [Build a native app with Capacitor](docs/BUILD_MOBILE_APP.md)
+- [Icon instructions](docs/ICON_INSTRUCTIONS.md)
 
-Edita el archivo `js/data.js` y a�ade nuevas frases al array:
+## Roadmap
 
-```javascript
-{
-    id: 11,
-    euskera: "Tu frase en euskera",
-    castellano: "Tu frase en castellano"
-}
-```
-
-## ?? Next Features
-
-- [ ] Verbs section
-- [ ] Vocabulary section
-- [ ] Challenges/gamification system
-- [ ] Review mode (failed phrases)
-- [ ] Level system
-- [ ] Migration to Supabase (multi-user cloud sync)
+- [ ] Verbs and vocabulary sections
+- [ ] Challenges / gamification
+- [ ] Reset progress and statistics (currently placeholders)
 - [ ] Audio pronunciation
-- [ ] Offline mode
-- [ ] Spaced repetition algorithm
-- [ ] Custom phrase collections
+- [ ] Spaced-repetition review
 
-## ?? Data Management
+## License
 
-### Currently (Local)
-- Data stored in browser's `localStorage`
-- Each user has their own progress
-- Data persists even after closing browser
-- Three types of data:
-  - **Users**: Account information
-  - **Progress**: Per-phrase statistics
-  - **Daily Progress**: Date-based activity tracking
-
-### Future (Supabase)
-- Cloud database
-- Sync across devices
-- Share phrases between users
-- Rankings and competitions
-- Backup and restore
-
-## ??? Personalizaci�n
-
-### Cambiar Colores
-Edita `styles.css` y modifica las variables de color:
-- Color principal: `#667eea`
-- Color secundario: `#764ba2`
-
-### MoValidation System
-
-The phrase validation is smart and flexible:
-1. Normalizes responses (lowercase, trim)
-2. Removes accents (�?a, �?e, �?n, etc.)
-3. Removes punctuation (commas, question marks, etc.)
-4. Compares word by word
-5. Detects incorrect, missing, or extra words
-6. Shows specific feedback for each error
-
-Examples that validate as correct:
-- "hola que tal" ?
-- "hola, qu� tal?" ?
-- "HOLA QUE TAL" ?
-- "Hola, que tal?" ?
-Q: Do I need internet to use the app?**  
-A: No, once opened it works completely offline.
-
-**Q: Where is my data stored?**  
-A: In your browser's localStorage, locally on your device.
-
-**Q: Can I use this on my phone?**  
-A: Yes, open it in your mobile browser or use Capacitor to create a native app.
-
-**Q: How do I add more content?**  
-A: Edit `js/data.js` and add more objects to the phrases array.
-
-**Q: Will I lose my data if I update the app?**  
-A: No, localStorage data persists. Only deleted if you clear browser cache.
-
-**Q: What happte
-
-This is a personal app, but you can:
-1. Add more phrases in `data.js`
-2. Improve styles in `styles.css`
-3. Add new features following the existing structure
-4. Report issues or suggest improvements
-
-## ?? License
-
-Personal project for learning Basque.
-
----
-
-**Made with ?? to learn euskera**
-
-For detailed requirements and all implemented features, see [PROJECT_REQUIREMENTS.md](PROJECT_REQUIREMENTS.md)
-R: S�, abre el archivo en el navegador m�vil o usa Capacitor para crear una app nativa.
-
-**P: �C�mo a�ado m�s contenido?**  
-R: Edita `js/data.js` y a�ade m�s objetos al array de frases.
-
-**P: �Se perder�n mis datos si actualizo la app?**  
-R: No, los datos de localStorage persisten. Solo se borran si limpias el cach� del navegador.
-
-## ?? Contribuir
-
-Esta es una app personal, pero puedes:
-1. A�adir m�s frases en `data.js`
-2. Mejorar los estilos en `styles.css`
-3. A�adir nuevas funcionalidades siguiendo la estructura existente
-
-## ?? Licencia
-
-Proyecto personal para aprendizaje de euskera.
-
----
-
-**Hecho con ?? para aprender euskera**
+Personal project for learning euskera.

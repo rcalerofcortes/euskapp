@@ -1,10 +1,10 @@
-// Screen - Add Content (Add Custom Phrases)
-let addContentDirection = 'castellano-euskera'; // Direction for adding content
+// Screen - Add Content (Add Phrases / Vocabulary)
+let addContentDirection = 'castellano-euskera'; // Direction shared by both tabs
+let activeContentTab = 'phrases'; // 'phrases' or 'vocabulary'
 
 function renderAddContentScreen() {
     const app = document.getElementById('app');
-    const allPhrases = getAllPhrases();
-    
+
     app.innerHTML = `
         <div class="screen">
             <div class="header">
@@ -12,48 +12,30 @@ function renderAddContentScreen() {
                 <h1>Add Content</h1>
                 <div style="width: 40px;"></div>
             </div>
-            
-            <div style="max-width: 500px; margin: 0 auto;">
-                <h2 style="color: #333; margin-bottom: 20px;">Add New Phrase</h2>
-                
-                <!-- Direction Selector -->
-                <div style="display: flex; justify-content: center; margin-bottom: 25px;">
-                    <button id="direction-toggle" class="btn btn-primary" onclick="toggleAddContentDirection()" 
-                            style="padding: 12px 24px; font-size: 16px; font-weight: 600;">
-                        ${addContentDirection === 'castellano-euskera' ? 'CAS → EUS' : 'EUS → CAS'}
-                    </button>
-                </div>
-                
-                <div id="add-content-form">
-                    ${renderAddContentForm()}
-                </div>
-                
-                <div style="display: flex; gap: 10px; margin-top: 20px;">
-                    <button class="btn btn-primary" onclick="handleAddPhrase()" style="flex: 1;">Add Phrase</button>
-                    <button class="btn btn-secondary" onclick="clearAddPhraseForm()">Clear</button>
-                </div>
-                
-                <div id="add-phrase-message" style="margin-top: 15px; display: none;"></div>
-                
-                <div style="margin-top: 30px; padding: 20px; background: #f0f7ff; border-radius: 12px; text-align: center;">
-                    <div style="font-size: 24px; font-weight: bold; color: #667eea; margin-bottom: 5px;">
-                        ${allPhrases.length}
-                    </div>
-                    <div style="color: #666; font-size: 14px;">
-                        Total phrases in database
-                    </div>
-                </div>
+
+            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <button class="btn ${activeContentTab === 'phrases' ? 'btn-primary' : 'btn-secondary'}"
+                        onclick="switchContentTab('phrases')"
+                        style="flex: 1;">Phrases</button>
+                <button class="btn ${activeContentTab === 'vocabulary' ? 'btn-primary' : 'btn-secondary'}"
+                        onclick="switchContentTab('vocabulary')"
+                        style="flex: 1;">Vocabulary</button>
             </div>
-            
-            ${allPhrases.length > 0 ? renderAllPhrasesList(allPhrases) : renderEmptyPhrases()}
+
+            <div id="content-tab"></div>
         </div>
     `;
-    
-    // Focus on first input
-    setTimeout(() => {
-        const firstInput = document.getElementById('phrase-main');
-        if (firstInput) firstInput.focus();
-    }, 100);
+
+    if (activeContentTab === 'phrases') {
+        renderPhrasesTab();
+    } else {
+        renderVocabularyTab();
+    }
+}
+
+function switchContentTab(tab) {
+    activeContentTab = tab;
+    renderAddContentScreen();
 }
 
 function toggleAddContentDirection() {
@@ -61,55 +43,102 @@ function toggleAddContentDirection() {
     renderAddContentScreen();
 }
 
+function directionToggleButton() {
+    return `
+        <div style="display: flex; justify-content: center; margin-bottom: 25px;">
+            <button id="direction-toggle" class="btn btn-primary" onclick="toggleAddContentDirection()"
+                    style="padding: 12px 24px; font-size: 16px; font-weight: 600;">
+                ${addContentDirection === 'castellano-euskera' ? 'CAS → EUS' : 'EUS → CAS'}
+            </button>
+        </div>
+    `;
+}
+
+// =====================================================
+// PHRASES TAB  (unchanged behaviour)
+// =====================================================
+
+function renderPhrasesTab() {
+    const container = document.getElementById('content-tab');
+    const allPhrases = getAllPhrases();
+
+    container.innerHTML = `
+        <div style="max-width: 500px; margin: 0 auto;">
+            <h2 style="color: #333; margin-bottom: 20px;">Add New Phrase</h2>
+
+            ${directionToggleButton()}
+
+            <div id="add-content-form">
+                ${renderAddContentForm()}
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="btn btn-primary" onclick="handleAddPhrase()" style="flex: 1;">Add Phrase</button>
+                <button class="btn btn-secondary" onclick="clearAddPhraseForm()">Clear</button>
+            </div>
+
+            <div id="add-phrase-message" style="margin-top: 15px; display: none;"></div>
+
+            <div style="margin-top: 30px; padding: 20px; background: #f0f7ff; border-radius: 12px; text-align: center;">
+                <div style="font-size: 24px; font-weight: bold; color: #667eea; margin-bottom: 5px;">
+                    ${allPhrases.length}
+                </div>
+                <div style="color: #666; font-size: 14px;">
+                    Total phrases in database
+                </div>
+            </div>
+        </div>
+
+        ${allPhrases.length > 0 ? renderAllPhrasesList(allPhrases) : renderEmptyPhrases()}
+    `;
+
+    // Focus on first input
+    setTimeout(() => {
+        const firstInput = document.getElementById('phrase-main');
+        if (firstInput) firstInput.focus();
+    }, 100);
+}
+
 function renderAddContentForm() {
     const isEusToCas = addContentDirection === 'euskera-castellano';
     const mainLang = isEusToCas ? 'Euskera' : 'Spanish';
     const transLang = isEusToCas ? 'Spanish' : 'Euskera';
-    
+
     return `
         <div class="form-group">
             <label for="phrase-main">Phrase in ${mainLang}</label>
             <input type="text" id="phrase-main" placeholder="Enter phrase in ${mainLang}" autocomplete="off">
         </div>
-        
+
         <div id="alternatives-main-container" style="margin-bottom: 20px;">
             <!-- Dynamic alternatives will be added here -->
         </div>
-        
-        <button type="button" class="btn btn-secondary" onclick="addAlternativeField('main')" 
+
+        <button type="button" class="btn btn-secondary" onclick="addAlternativeField('main')"
                 style="width: 100%; margin-bottom: 20px; background: #e0e0e0; color: #333;">
             + Add Alternative in ${mainLang}
         </button>
-        
+
         <div class="form-group">
             <label for="phrase-translation">Translation in ${transLang}</label>
             <input type="text" id="phrase-translation" placeholder="Enter translation in ${transLang}" autocomplete="off">
         </div>
-        
+
         <div id="alternatives-translation-container" style="margin-bottom: 20px;">
             <!-- Dynamic alternatives will be added here -->
         </div>
-        
-        <button type="button" class="btn btn-secondary" onclick="addAlternativeField('translation')" 
+
+        <button type="button" class="btn btn-secondary" onclick="addAlternativeField('translation')"
                 style="width: 100%; margin-bottom: 20px; background: #e0e0e0; color: #333;">
             + Add Alternative in ${transLang}
         </button>
-        
+
         <div class="form-group">
             <label for="phrase-note">Note (Optional)</label>
-            <textarea id="phrase-note" 
-                      placeholder="Add a grammar note or explanation (e.g., why an alternative is valid)" 
+            <textarea id="phrase-note"
+                      placeholder="Add a grammar note or explanation (e.g., why an alternative is valid)"
                       autocomplete="off"
                       style="width: 100%; min-height: 60px; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-family: inherit; resize: vertical;"></textarea>
-        </div>
-    `;
-}
-
-function renderEmptyCustomPhrases() {
-    return `
-        <div style="text-align: center; padding: 40px 20px; margin-top: 30px; background: #f8f9fa; border-radius: 12px;">
-            <h3 style="color: #667eea; margin-bottom: 10px;">No phrases yet</h3>
-            <p style="color: #666;">Add your first phrase above to get started!</p>
         </div>
     `;
 }
@@ -127,7 +156,7 @@ function renderAllPhrasesList(phrases) {
     return `
         <div style="margin-top: 40px;">
             <h3 style="color: #333; margin-bottom: 20px;">All Phrases (${phrases.length})</h3>
-            
+
             <div style="display: flex; flex-direction: column; gap: 10px;">
                 ${phrases.map(phrase => `
                     <div style="background: white; border: 2px solid #e0e0e0; border-radius: 8px; padding: 15px;">
@@ -162,27 +191,27 @@ function addAlternativeField(type) {
     const container = document.getElementById(`alternatives-${type}-container`);
     const counter = ++alternativeCounters[type];
     const isEusToCas = addContentDirection === 'euskera-castellano';
-    const lang = type === 'main' 
+    const lang = type === 'main'
         ? (isEusToCas ? 'Euskera' : 'Spanish')
         : (isEusToCas ? 'Spanish' : 'Euskera');
-    
+
     const fieldHtml = `
         <div class="form-group" id="alt-${type}-${counter}" style="position: relative;">
             <label for="phrase-${type}-alt-${counter}">Alternative ${counter} in ${lang}</label>
             <div style="display: flex; gap: 8px; align-items: center;">
-                <input type="text" id="phrase-${type}-alt-${counter}" 
-                       placeholder="Enter alternative ${counter}" 
-                       autocomplete="off" 
+                <input type="text" id="phrase-${type}-alt-${counter}"
+                       placeholder="Enter alternative ${counter}"
+                       autocomplete="off"
                        style="flex: 1;">
-                <button type="button" onclick="removeAlternativeField('${type}', ${counter})" 
-                        class="btn" 
+                <button type="button" onclick="removeAlternativeField('${type}', ${counter})"
+                        class="btn"
                         style="background: #f44336; color: white; padding: 8px 12px; min-width: 40px;">
                     ✕
                 </button>
             </div>
         </div>
     `;
-    
+
     container.insertAdjacentHTML('beforeend', fieldHtml);
     document.getElementById(`phrase-${type}-alt-${counter}`).focus();
 }
@@ -194,112 +223,70 @@ function removeAlternativeField(type, counter) {
     }
 }
 
-function renderCustomPhrasesList(phrases) {
-    return `
-        <div style="margin-top: 40px;">
-            <h3 style="color: #333; margin-bottom: 20px;">Your Custom Phrases (${phrases.length})</h3>
-            
-            <div style="display: flex; flex-direction: column; gap: 10px;">
-                ${phrases.map(phrase => `
-                    <div style="background: white; border: 2px solid #e0e0e0; border-radius: 8px; padding: 15px; display: flex; justify-content: space-between; align-items: center;">
-                        <div style="flex: 1;">
-                            <div style="font-size: 16px; font-weight: 600; color: #333; margin-bottom: 5px;">
-                                ${phrase.euskera}
-                            </div>
-                            ${phrase.euskeraAlternatives && phrase.euskeraAlternatives.length > 0 ? `
-                                <div style="font-size: 12px; color: #999; font-style: italic; margin-bottom: 5px;">
-                                    Also: ${phrase.euskeraAlternatives.join(', ')}
-                                </div>
-                            ` : ''}
-                            <div style="font-size: 14px; color: #667eea;">
-                                ${phrase.castellano}
-                            </div>
-                            ${phrase.castellanoAlternatives && phrase.castellanoAlternatives.length > 0 ? `
-                                <div style="font-size: 12px; color: #999; font-style: italic; margin-top: 3px;">
-                                    Also: ${phrase.castellanoAlternatives.join(', ')}
-                                </div>
-                            ` : ''}
-                            ${phrase.note ? `
-                                <div style="font-size: 12px; color: #333; margin-top: 8px; padding: 6px 8px; background: #f0f7ff; border-radius: 4px; border-left: 3px solid #667eea;">
-                                    <strong style="color: #667eea;">📝</strong> ${phrase.note}
-                                </div>
-                            ` : ''}
-                        </div>
-                        <button class="btn btn-danger" onclick="handleDeletePhrase(${phrase.id})" style="background: #f44336; padding: 8px 15px; font-size: 12px;">
-                            Delete
-                        </button>
-                    </div>
-                `).join('')}
-            </div>
-        </div>
-    `;
-}
-
 async function handleAddPhrase() {
     const mainPhrase = document.getElementById('phrase-main').value.trim();
     const translationPhrase = document.getElementById('phrase-translation').value.trim();
-    const messageDiv = document.getElementById('add-phrase-message');
-    
+
     // Validate inputs
     if (!mainPhrase || !translationPhrase) {
         showAddPhraseMessage('Please fill in both main fields', 'error');
         return;
     }
-    
+
     if (mainPhrase.length < 2 || translationPhrase.length < 2) {
         showAddPhraseMessage('Phrases must be at least 2 characters long', 'error');
         return;
     }
-    
+
     // Collect alternatives from dynamic fields
     const mainAlternatives = [];
     const translationAlternatives = [];
-    
+
     for (let i = 1; i <= alternativeCounters.main; i++) {
         const input = document.getElementById(`phrase-main-alt-${i}`);
         if (input && input.value.trim()) {
             mainAlternatives.push(input.value.trim());
         }
     }
-    
+
     for (let i = 1; i <= alternativeCounters.translation; i++) {
         const input = document.getElementById(`phrase-translation-alt-${i}`);
         if (input && input.value.trim()) {
             translationAlternatives.push(input.value.trim());
         }
     }
-    
+
     // Determine which is euskera and which is castellano based on direction
     const isEusToCas = addContentDirection === 'euskera-castellano';
     const euskera = isEusToCas ? mainPhrase : translationPhrase;
     const castellano = isEusToCas ? translationPhrase : mainPhrase;
     const euskeraAlternatives = isEusToCas ? mainAlternatives : translationAlternatives;
-    
+
     // Get note if provided
     const noteInput = document.getElementById('phrase-note');
     const note = noteInput ? noteInput.value.trim() : '';
-    
+
     // Show loading
     showAddPhraseMessage('Adding phrase...', 'loading');
-    
+
     // Save phrase to Supabase
     try {
         const result = await SupabasePhrases.addPhrase(
-            euskera, 
-            castellano, 
+            euskera,
+            castellano,
             euskeraAlternatives.length > 0 ? euskeraAlternatives : null,
             note || null
         );
-        
+
         if (result.success) {
             // Reload phrases from Supabase
             await loadPhrasesFromSupabase();
-            
+
             showAddPhraseMessage('Phrase added successfully!', 'success');
-            
+
             // Clear form
             clearAddPhraseForm();
-            
+
             // Refresh the screen to show new phrase
             setTimeout(() => {
                 renderAddContentScreen();
@@ -321,29 +308,328 @@ function clearAddPhraseForm() {
     if (mainInput) mainInput.value = '';
     if (translationInput) translationInput.value = '';
     if (noteInput) noteInput.value = '';
-    
+
     // Clear all alternative fields
     document.getElementById('alternatives-main-container').innerHTML = '';
     document.getElementById('alternatives-translation-container').innerHTML = '';
-    
+
     // Reset counters
     alternativeCounters = { main: 0, translation: 0 };
-    
+
     // Focus on first input
     if (mainInput) mainInput.focus();
-    
+
     const messageDiv = document.getElementById('add-phrase-message');
-    messageDiv.style.display = 'none';
+    if (messageDiv) messageDiv.style.display = 'none';
 }
 
 function showAddPhraseMessage(message, type) {
-    const messageDiv = document.getElementById('add-phrase-message');
+    showContentMessage('add-phrase-message', message, type);
+}
+
+// =====================================================
+// VOCABULARY TAB
+// =====================================================
+
+function renderVocabularyTab() {
+    const container = document.getElementById('content-tab');
+    const allVocabulary = getAllVocabulary();
+
+    container.innerHTML = `
+        <div style="max-width: 500px; margin: 0 auto;">
+            <h2 style="color: #333; margin-bottom: 20px;">Add New Word</h2>
+
+            ${directionToggleButton()}
+
+            <div id="add-vocabulary-form">
+                ${renderVocabularyForm()}
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="btn btn-primary" onclick="handleAddVocabulary()" style="flex: 1;">Add Word</button>
+                <button class="btn btn-secondary" onclick="clearVocabularyForm()">Clear</button>
+            </div>
+
+            <div id="add-vocabulary-message" style="margin-top: 15px; display: none;"></div>
+
+            <div style="margin-top: 30px; padding: 20px; background: #f0f7ff; border-radius: 12px; text-align: center;">
+                <div style="font-size: 24px; font-weight: bold; color: #667eea; margin-bottom: 5px;">
+                    ${allVocabulary.length}
+                </div>
+                <div style="color: #666; font-size: 14px;">
+                    Total words in database
+                </div>
+            </div>
+        </div>
+
+        ${allVocabulary.length > 0 ? renderAllVocabularyList(allVocabulary) : renderEmptyVocabulary()}
+    `;
+
+    // Focus on first input
+    setTimeout(() => {
+        const firstInput = document.getElementById('vocab-main');
+        if (firstInput) firstInput.focus();
+    }, 100);
+}
+
+function renderVocabularyForm() {
+    const isEusToCas = addContentDirection === 'euskera-castellano';
+    const mainLang = isEusToCas ? 'Euskera' : 'Spanish';
+    const transLang = isEusToCas ? 'Spanish' : 'Euskera';
+
+    return `
+        <div class="form-group">
+            <label for="vocab-main">Word in ${mainLang}</label>
+            <input type="text" id="vocab-main" placeholder="Enter word in ${mainLang}" autocomplete="off">
+        </div>
+
+        <div id="vocab-alternatives-main-container" style="margin-bottom: 20px;">
+            <!-- Dynamic alternatives will be added here -->
+        </div>
+
+        <button type="button" class="btn btn-secondary" onclick="addVocabAlternativeField('main')"
+                style="width: 100%; margin-bottom: 20px; background: #e0e0e0; color: #333;">
+            + Add Alternative in ${mainLang}
+        </button>
+
+        <div class="form-group">
+            <label for="vocab-translation">Translation in ${transLang}</label>
+            <input type="text" id="vocab-translation" placeholder="Enter translation in ${transLang}" autocomplete="off">
+        </div>
+
+        <div id="vocab-alternatives-translation-container" style="margin-bottom: 20px;">
+            <!-- Dynamic alternatives will be added here -->
+        </div>
+
+        <button type="button" class="btn btn-secondary" onclick="addVocabAlternativeField('translation')"
+                style="width: 100%; margin-bottom: 20px; background: #e0e0e0; color: #333;">
+            + Add Alternative in ${transLang}
+        </button>
+
+        <div class="form-group">
+            <label for="vocab-example">Example phrase</label>
+            <input type="text" id="vocab-example" placeholder="Enter an example phrase using the word" autocomplete="off">
+        </div>
+
+        <div class="form-group">
+            <label for="vocab-note">Note (Optional)</label>
+            <textarea id="vocab-note"
+                      placeholder="Add a grammar note or explanation"
+                      autocomplete="off"
+                      style="width: 100%; min-height: 60px; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-family: inherit; resize: vertical;"></textarea>
+        </div>
+    `;
+}
+
+function renderEmptyVocabulary() {
+    return `
+        <div style="text-align: center; padding: 40px 20px; margin-top: 30px; background: #f8f9fa; border-radius: 12px;">
+            <h3 style="color: #667eea; margin-bottom: 10px;">No words yet</h3>
+            <p style="color: #666;">Add your first word above to get started!</p>
+        </div>
+    `;
+}
+
+function renderAllVocabularyList(words) {
+    return `
+        <div style="margin-top: 40px;">
+            <h3 style="color: #333; margin-bottom: 20px;">All Words (${words.length})</h3>
+
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                ${words.map(word => `
+                    <div style="background: white; border: 2px solid #e0e0e0; border-radius: 8px; padding: 15px;">
+                        <div style="flex: 1;">
+                            <div style="font-size: 16px; font-weight: 600; color: #333; margin-bottom: 5px;">
+                                ${word.euskera}
+                            </div>
+                            ${word.euskeraAlternatives && word.euskeraAlternatives.length > 0 ? `
+                                <div style="font-size: 12px; color: #999; font-style: italic; margin-bottom: 5px;">
+                                    Also: ${word.euskeraAlternatives.join(', ')}
+                                </div>
+                            ` : ''}
+                            <div style="font-size: 14px; color: #667eea;">
+                                ${word.castellano}
+                            </div>
+                            ${word.castellanoAlternatives && word.castellanoAlternatives.length > 0 ? `
+                                <div style="font-size: 12px; color: #999; font-style: italic; margin-top: 3px;">
+                                    Also: ${word.castellanoAlternatives.join(', ')}
+                                </div>
+                            ` : ''}
+                            ${word.example ? `
+                                <div style="font-size: 13px; color: #555; margin-top: 8px; font-style: italic;">
+                                    💬 ${word.example}
+                                </div>
+                            ` : ''}
+                            ${word.note ? `
+                                <div style="font-size: 12px; color: #333; margin-top: 8px; padding: 6px 8px; background: #f0f7ff; border-radius: 4px; border-left: 3px solid #667eea;">
+                                    <strong style="color: #667eea;">📝</strong> ${word.note}
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+}
+
+let vocabAlternativeCounters = { main: 0, translation: 0 };
+
+function addVocabAlternativeField(type) {
+    const container = document.getElementById(`vocab-alternatives-${type}-container`);
+    const counter = ++vocabAlternativeCounters[type];
+    const isEusToCas = addContentDirection === 'euskera-castellano';
+    const lang = type === 'main'
+        ? (isEusToCas ? 'Euskera' : 'Spanish')
+        : (isEusToCas ? 'Spanish' : 'Euskera');
+
+    const fieldHtml = `
+        <div class="form-group" id="vocab-alt-${type}-${counter}" style="position: relative;">
+            <label for="vocab-${type}-alt-${counter}">Alternative ${counter} in ${lang}</label>
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <input type="text" id="vocab-${type}-alt-${counter}"
+                       placeholder="Enter alternative ${counter}"
+                       autocomplete="off"
+                       style="flex: 1;">
+                <button type="button" onclick="removeVocabAlternativeField('${type}', ${counter})"
+                        class="btn"
+                        style="background: #f44336; color: white; padding: 8px 12px; min-width: 40px;">
+                    ✕
+                </button>
+            </div>
+        </div>
+    `;
+
+    container.insertAdjacentHTML('beforeend', fieldHtml);
+    document.getElementById(`vocab-${type}-alt-${counter}`).focus();
+}
+
+function removeVocabAlternativeField(type, counter) {
+    const field = document.getElementById(`vocab-alt-${type}-${counter}`);
+    if (field) {
+        field.remove();
+    }
+}
+
+async function handleAddVocabulary() {
+    const mainWord = document.getElementById('vocab-main').value.trim();
+    const translationWord = document.getElementById('vocab-translation').value.trim();
+
+    // Validate inputs
+    if (!mainWord || !translationWord) {
+        showAddVocabularyMessage('Please fill in both word fields', 'error');
+        return;
+    }
+
+    // Collect alternatives from dynamic fields
+    const mainAlternatives = [];
+    const translationAlternatives = [];
+
+    for (let i = 1; i <= vocabAlternativeCounters.main; i++) {
+        const input = document.getElementById(`vocab-main-alt-${i}`);
+        if (input && input.value.trim()) {
+            mainAlternatives.push(input.value.trim());
+        }
+    }
+
+    for (let i = 1; i <= vocabAlternativeCounters.translation; i++) {
+        const input = document.getElementById(`vocab-translation-alt-${i}`);
+        if (input && input.value.trim()) {
+            translationAlternatives.push(input.value.trim());
+        }
+    }
+
+    // Determine which is euskera and which is castellano based on direction
+    const isEusToCas = addContentDirection === 'euskera-castellano';
+    const euskera = isEusToCas ? mainWord : translationWord;
+    const castellano = isEusToCas ? translationWord : mainWord;
+    const euskeraAlternatives = isEusToCas ? mainAlternatives : translationAlternatives;
+    const castellanoAlternatives = isEusToCas ? translationAlternatives : mainAlternatives;
+
+    // Optional fields
+    const exampleInput = document.getElementById('vocab-example');
+    const example = exampleInput ? exampleInput.value.trim() : '';
+    const noteInput = document.getElementById('vocab-note');
+    const note = noteInput ? noteInput.value.trim() : '';
+
+    // Show loading
+    showAddVocabularyMessage('Adding word...', 'loading');
+
+    // Save word to Supabase
+    try {
+        const result = await SupabaseVocabulary.addVocabularyWord(
+            euskera,
+            castellano,
+            euskeraAlternatives.length > 0 ? euskeraAlternatives : null,
+            castellanoAlternatives.length > 0 ? castellanoAlternatives : null,
+            example || null,
+            note || null
+        );
+
+        if (result.success) {
+            // Reload vocabulary from Supabase
+            await loadVocabularyFromSupabase();
+
+            showAddVocabularyMessage('Word added successfully!', 'success');
+
+            // Clear form
+            clearVocabularyForm();
+
+            // Refresh the screen to show new word
+            setTimeout(() => {
+                renderAddContentScreen();
+            }, 1000);
+        } else {
+            showAddVocabularyMessage('Error adding word: ' + (result.error || 'Unknown error'), 'error');
+        }
+    } catch (error) {
+        showAddVocabularyMessage('Error adding word. Please try again.', 'error');
+        console.error('Error adding word:', error);
+    }
+}
+
+function clearVocabularyForm() {
+    const mainInput = document.getElementById('vocab-main');
+    const translationInput = document.getElementById('vocab-translation');
+    const exampleInput = document.getElementById('vocab-example');
+    const noteInput = document.getElementById('vocab-note');
+    if (mainInput) mainInput.value = '';
+    if (translationInput) translationInput.value = '';
+    if (exampleInput) exampleInput.value = '';
+    if (noteInput) noteInput.value = '';
+
+    // Clear all alternative fields
+    document.getElementById('vocab-alternatives-main-container').innerHTML = '';
+    document.getElementById('vocab-alternatives-translation-container').innerHTML = '';
+
+    // Reset counters
+    vocabAlternativeCounters = { main: 0, translation: 0 };
+
+    // Focus on first input
+    if (mainInput) mainInput.focus();
+
+    const messageDiv = document.getElementById('add-vocabulary-message');
+    if (messageDiv) messageDiv.style.display = 'none';
+}
+
+function showAddVocabularyMessage(message, type) {
+    showContentMessage('add-vocabulary-message', message, type);
+}
+
+// =====================================================
+// SHARED HELPERS
+// =====================================================
+
+function showContentMessage(elementId, message, type) {
+    const messageDiv = document.getElementById(elementId);
+    if (!messageDiv) return;
+
     messageDiv.textContent = message;
     messageDiv.style.display = 'block';
     messageDiv.style.padding = '10px';
     messageDiv.style.borderRadius = '8px';
     messageDiv.style.textAlign = 'center';
-    
+
     if (type === 'success') {
         messageDiv.style.background = '#4caf50';
         messageDiv.style.color = 'white';
@@ -354,238 +640,9 @@ function showAddPhraseMessage(message, type) {
         messageDiv.style.background = '#f44336';
         messageDiv.style.color = 'white';
     }
-    
+
     // Hide after 3 seconds
     setTimeout(() => {
         messageDiv.style.display = 'none';
     }, 3000);
-}
-
-function handleDeletePhrase(id) {
-    if (confirm('Are you sure you want to delete this phrase?')) {
-        Storage.deleteCustomPhrase(id);
-        renderAddContentScreen();
-    }
-}
-
-function handleDownloadDataFile() {
-    const allPhrases = getAllPhrases();
-    
-    // Generate the data.js file content
-    const fileContent = `// Database of phrases in Basque and Spanish
-const phrasesData = ${JSON.stringify(allPhrases, null, 4).replace(/"(\w+)":/g, '$1:')};
-
-// Function to get all phrases
-function getAllPhrases() {
-    const customPhrases = Storage.getCustomPhrases();
-    return [...phrasesData, ...customPhrases];
-}
-
-// Function to get a random phrase
-function getRandomPhrase() {
-    const randomIndex = Math.floor(Math.random() * phrasesData.length);
-    return phrasesData[randomIndex];
-}
-
-// Function to get a phrase by ID
-function getPhraseById(id) {
-    return phrasesData.find(phrase => phrase.id === id);
-}
-
-// Function to remove accents from a string
-function removeAccents(str) {
-    return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-}
-
-// Function to compare answers (case insensitive, without accents, punctuation, and extra spaces)
-// Supports checking against alternative translations if provided
-function compareAnswers(userAnswer, correctAnswer, alternatives = []) {
-    const normalize = (str) => {
-        return removeAccents(str)
-            .toLowerCase()
-            .replace(/[.,\/#!$%\^&\*;:{}=\-_\`~()¿?¡!]/g, '') // Remove punctuation
-            .trim()
-            .replace(/\s+/g, ' '); // Replace multiple spaces with single space
-    };
-    
-    const normalizedUser = normalize(userAnswer);
-    
-    // Check main answer
-    if (normalizedUser === normalize(correctAnswer)) {
-        return true;
-    }
-    
-    // Check alternative answers
-    if (alternatives && alternatives.length > 0) {
-        return alternatives.some(alt => normalizedUser === normalize(alt));
-    }
-    
-    return false;
-}
-
-// Function to find differences between two strings
-function findDifferences(userAnswer, correctAnswer) {
-    // Normalize both answers for comparison
-    const normalizeForComparison = (str) => {
-        return removeAccents(str)
-            .toLowerCase()
-            .replace(/[.,\/#!$%\^&\*;:{}=\-_\`~()¿?¡!]/g, '') // Remove punctuation
-            .trim();
-    };
-    
-    const userWords = normalizeForComparison(userAnswer).split(/\s+/);
-    const correctWords = normalizeForComparison(correctAnswer).split(/\s+/);
-    
-    const differences = [];
-    
-    // Compare word by word
-    const maxLength = Math.max(userWords.length, correctWords.length);
-    
-    for (let i = 0; i < maxLength; i++) {
-        if (userWords[i] !== correctWords[i]) {
-            if (i < userWords.length && i < correctWords.length) {
-                differences.push('Word ' + (i + 1) + ': you wrote "' + userWords[i] + '" but it should be "' + correctWords[i] + '"');
-            } else if (i >= userWords.length) {
-                differences.push('Missing word "' + correctWords[i] + '"');
-            } else {
-                differences.push('Extra word "' + userWords[i] + '"');
-            }
-        }
-    }
-    
-    return differences;
-}
-`;
-
-    // Create blob and download
-    const blob = new Blob([fileContent], { type: 'text/javascript' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'data.js';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    
-    // Show success message
-    alert(`Downloaded data.js with ${allPhrases.length} phrases!\\n\\nYou can now replace the file in:\\njs/data.js`);
-}
-
-function generateDataFileContent() {
-    const allPhrases = getAllPhrases();
-    
-    // Generate the data.js file content
-    return `// Database of phrases in Basque and Spanish
-const phrasesData = ${JSON.stringify(allPhrases, null, 4).replace(/"(\w+)":/g, '$1:')};
-
-// Function to get all phrases
-function getAllPhrases() {
-    const customPhrases = Storage.getCustomPhrases();
-    return [...phrasesData, ...customPhrases];
-}
-
-// Function to get a random phrase
-function getRandomPhrase() {
-    const randomIndex = Math.floor(Math.random() * phrasesData.length);
-    return phrasesData[randomIndex];
-}
-
-// Function to get a phrase by ID
-function getPhraseById(id) {
-    return phrasesData.find(phrase => phrase.id === id);
-}
-
-// Function to remove accents from a string
-function removeAccents(str) {
-    return str.normalize('NFD').replace(/[\\u0300-\\u036f]/g, '');
-}
-
-// Function to compare answers (case insensitive, without accents, punctuation, and extra spaces)
-// Supports checking against alternative translations if provided
-function compareAnswers(userAnswer, correctAnswer, alternatives = []) {
-    const normalize = (str) => {
-        return removeAccents(str)
-            .toLowerCase()
-            .replace(/[.,\\/#!$%\\^&\\*;:{}=\\-_\\\`~()¿?¡!]/g, '') // Remove punctuation
-            .trim()
-            .replace(/\\s+/g, ' '); // Replace multiple spaces with single space
-    };
-    
-    const normalizedUser = normalize(userAnswer);
-    
-    // Check main answer
-    if (normalizedUser === normalize(correctAnswer)) {
-        return true;
-    }
-    
-    // Check alternative answers
-    if (alternatives && alternatives.length > 0) {
-        return alternatives.some(alt => normalizedUser === normalize(alt));
-    }
-    
-    return false;
-}
-
-// Function to find differences between two strings
-function findDifferences(userAnswer, correctAnswer) {
-    // Normalize both answers for comparison
-    const normalizeForComparison = (str) => {
-        return removeAccents(str)
-            .toLowerCase()
-            .replace(/[.,\\/#!$%\\^&\\*;:{}=\\-_\\\`~()¿?¡!]/g, '') // Remove punctuation
-            .trim();
-    };
-    
-    const userWords = normalizeForComparison(userAnswer).split(/\\s+/);
-    const correctWords = normalizeForComparison(correctAnswer).split(/\\s+/);
-    
-    const differences = [];
-    
-    // Compare word by word
-    const maxLength = Math.max(userWords.length, correctWords.length);
-    
-    for (let i = 0; i < maxLength; i++) {
-        if (userWords[i] !== correctWords[i]) {
-            if (i < userWords.length && i < correctWords.length) {
-                differences.push(\\\`Word \\\${i + 1}: you wrote "\\\${userWords[i]}" but it should be "\\\${correctWords[i]}"\\\`);
-            } else if (i >= userWords.length) {
-                differences.push(\\\`Missing word "\\\${correctWords[i]}"\\\`);
-            } else {
-                differences.push(\\\`Extra word "\\\${userWords[i]}"\\\`);
-            }
-        }
-    }
-    
-    return differences;
-}
-`;
-}
-
-async function handleUpdateDataFile() {
-    const allPhrases = getAllPhrases();
-    const newContent = generateDataFileContent();
-    
-    // Create a download that user can use to replace the file
-    const blob = new Blob([newContent], { type: 'text/javascript' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'data.js';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    
-    // Show instructions
-    const message = `✅ Downloaded updated data.js with ${allPhrases.length} phrases!
-
-📁 To update your project:
-1. Find the downloaded 'data.js' file
-2. Replace the file at: js/data.js
-3. Reload the page
-
-The file now includes all your custom phrases!`;
-    
-    alert(message);
 }

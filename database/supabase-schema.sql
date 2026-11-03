@@ -149,3 +149,43 @@ INSERT INTO phrases (id, euskera, castellano, euskera_alternatives, note) VALUES
 
 -- Reset the sequence to continue from the highest ID
 SELECT setval('phrases_id_seq', (SELECT MAX(id) FROM phrases));
+
+
+-- =====================================================
+-- TABLE 4: vocabulary
+-- Stores individual Basque-Spanish words (vocabulary)
+-- Independent from phrases; shared globally like phrases.
+-- =====================================================
+CREATE TABLE vocabulary (
+    id BIGSERIAL PRIMARY KEY,
+    euskera TEXT NOT NULL,
+    castellano TEXT NOT NULL,
+    euskera_alternatives TEXT[],     -- Alternative Basque spellings/words
+    castellano_alternatives TEXT[],  -- Alternative Spanish spellings/words
+    example TEXT,                    -- Optional example phrase using the word
+    note TEXT,                       -- Optional grammar note
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+);
+
+-- Index for faster queries
+CREATE INDEX idx_vocabulary_id ON vocabulary(id);
+
+-- Enable Row Level Security (RLS)
+ALTER TABLE vocabulary ENABLE ROW LEVEL SECURITY;
+
+-- Policy: Anyone can read vocabulary
+CREATE POLICY "Anyone can read vocabulary" ON vocabulary
+    FOR SELECT
+    TO public
+    USING (true);
+
+-- Policy: Only authenticated users can insert vocabulary
+CREATE POLICY "Authenticated users can insert vocabulary" ON vocabulary
+    FOR INSERT
+    TO authenticated
+    WITH CHECK (true);
+
+-- Trigger to auto-update updated_at
+CREATE TRIGGER update_vocabulary_updated_at BEFORE UPDATE ON vocabulary
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

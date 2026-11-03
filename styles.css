@@ -85,11 +85,6 @@ body {
     background: #e0e0e0;
 }
 
-.btn-success {
-    background: #4caf50;
-    color: white;
-}
-
 .btn-danger {
     background: #f44336;
     color: white;
@@ -249,12 +244,6 @@ body {
     color: white;
 }
 
-.error-details {
-    margin-top: 10px;
-    font-size: 14px;
-    line-height: 1.6;
-}
-
 .phrase-controls {
     display: flex;
     gap: 10px;
@@ -282,10 +271,6 @@ body {
 /* Utilities */
 .text-center {
     text-align: center;
-}
-
-.mt-20 {
-    margin-top: 20px;
 }
 
 .mb-20 {
