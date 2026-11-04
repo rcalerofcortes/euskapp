@@ -552,7 +552,7 @@ function renderAllVocabularyList(words) {
 
             <div style="display: flex; flex-direction: column; gap: 10px;">
                 ${words.map(word => `
-                    <div style="background: white; border: 2px solid #e0e0e0; border-radius: 8px; padding: 15px;">
+                    <div style="background: white; border: 2px solid #e0e0e0; border-radius: 8px; padding: 15px; display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;">
                         <div style="flex: 1;">
                             <div style="font-size: 16px; font-weight: 600; color: #333; margin-bottom: 5px;">
                                 ${word.euskera}
@@ -581,10 +581,16 @@ function renderAllVocabularyList(words) {
                                 </div>
                             ` : ''}
                         </div>
+                        <button class="btn btn-secondary" onclick="openEditVocabModal(${word.id})"
+                                style="padding: 6px 12px; font-size: 13px; white-space: nowrap;">
+                            ✏️ Edit
+                        </button>
                     </div>
                 `).join('')}
             </div>
         </div>
+
+        <div id="edit-vocab-modal-container"></div>
     `;
 }
 
@@ -729,6 +735,120 @@ function clearVocabularyForm() {
 
 function showAddVocabularyMessage(message, type) {
     showContentMessage('add-vocabulary-message', message, type);
+}
+
+// =====================================================
+// EDIT VOCABULARY MODAL
+// =====================================================
+
+function openEditVocabModal(id) {
+    const word = getAllVocabulary().find(w => w.id === id);
+    if (!word) return;
+
+    const container = document.getElementById('edit-vocab-modal-container');
+    if (!container) return;
+
+    const euskeraAlts = (word.euskeraAlternatives || []).join(', ');
+    const castellanoAlts = (word.castellanoAlternatives || []).join(', ');
+
+    container.innerHTML = `
+        <div class="modal-overlay" onclick="if (event.target === this) closeEditVocabModal()">
+            <div class="modal-box">
+                <h2 style="color: #333; margin-bottom: 20px;">Edit Word</h2>
+
+                <div class="form-group">
+                    <label for="edit-vocab-euskera">Euskera</label>
+                    <input type="text" id="edit-vocab-euskera" autocomplete="off" value="${escapeAttr(word.euskera)}">
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-vocab-euskera-alts">Alternatives in Euskera (comma-separated)</label>
+                    <input type="text" id="edit-vocab-euskera-alts" autocomplete="off" value="${escapeAttr(euskeraAlts)}">
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-vocab-castellano">Castellano</label>
+                    <input type="text" id="edit-vocab-castellano" autocomplete="off" value="${escapeAttr(word.castellano)}">
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-vocab-castellano-alts">Alternatives in Spanish (comma-separated)</label>
+                    <input type="text" id="edit-vocab-castellano-alts" autocomplete="off" value="${escapeAttr(castellanoAlts)}">
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-vocab-example">Example phrase</label>
+                    <input type="text" id="edit-vocab-example" autocomplete="off" value="${escapeAttr(word.example || '')}">
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-vocab-note">Note (Optional)</label>
+                    <textarea id="edit-vocab-note" autocomplete="off"
+                              style="width: 100%; min-height: 60px; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-family: inherit; resize: vertical;">${escapeHtml(word.note || '')}</textarea>
+                </div>
+
+                <div id="edit-vocab-message" style="margin-top: 10px; display: none;"></div>
+
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button class="btn btn-primary" onclick="handleSaveEditVocab(${id})" style="flex: 1;">Save</button>
+                    <button class="btn btn-secondary" onclick="closeEditVocabModal()" style="flex: 1;">Cancel</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    const firstInput = document.getElementById('edit-vocab-euskera');
+    if (firstInput) firstInput.focus();
+}
+
+function closeEditVocabModal() {
+    const container = document.getElementById('edit-vocab-modal-container');
+    if (container) container.innerHTML = '';
+}
+
+async function handleSaveEditVocab(id) {
+    const euskera = document.getElementById('edit-vocab-euskera').value.trim();
+    const castellano = document.getElementById('edit-vocab-castellano').value.trim();
+    const example = document.getElementById('edit-vocab-example').value.trim();
+    const note = document.getElementById('edit-vocab-note').value.trim();
+
+    const parseCsv = (elementId) => document.getElementById(elementId).value
+        .split(',')
+        .map(a => a.trim())
+        .filter(a => a.length > 0);
+
+    const euskeraAlternatives = parseCsv('edit-vocab-euskera-alts');
+    const castellanoAlternatives = parseCsv('edit-vocab-castellano-alts');
+
+    if (!euskera || !castellano) {
+        showContentMessage('edit-vocab-message', 'Euskera and Castellano are required', 'error');
+        return;
+    }
+
+    showContentMessage('edit-vocab-message', 'Saving...', 'loading');
+
+    try {
+        const result = await SupabaseVocabulary.updateVocabularyWord(
+            id,
+            euskera,
+            castellano,
+            euskeraAlternatives.length > 0 ? euskeraAlternatives : null,
+            castellanoAlternatives.length > 0 ? castellanoAlternatives : null,
+            example || null,
+            note || null
+        );
+
+        if (result.success) {
+            await loadVocabularyFromSupabase();
+            closeEditVocabModal();
+            renderAddContentScreen();
+        } else {
+            showContentMessage('edit-vocab-message', 'Error saving: ' + (result.error || 'Unknown error'), 'error');
+        }
+    } catch (error) {
+        showContentMessage('edit-vocab-message', 'Error saving. Please try again.', 'error');
+        console.error('Error updating word:', error);
+    }
 }
 
 // =====================================================

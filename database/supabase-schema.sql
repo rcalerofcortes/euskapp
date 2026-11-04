@@ -193,6 +193,13 @@ CREATE POLICY "Authenticated users can insert vocabulary" ON vocabulary
     TO authenticated
     WITH CHECK (true);
 
+-- Policy: Authenticated users can update vocabulary (edit from "All Words")
+CREATE POLICY "Authenticated users can update vocabulary" ON vocabulary
+    FOR UPDATE
+    TO authenticated
+    USING (true)
+    WITH CHECK (true);
+
 -- Trigger to auto-update updated_at
 CREATE TRIGGER update_vocabulary_updated_at BEFORE UPDATE ON vocabulary
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

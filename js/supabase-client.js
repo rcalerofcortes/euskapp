@@ -267,6 +267,39 @@ const SupabaseVocabulary = {
             console.error('Add vocabulary error:', error);
             return { success: false, error: error.message };
         }
+    },
+
+    // Update an existing vocabulary word
+    async updateVocabularyWord(id, euskera, castellano, euskeraAlternatives = null, castellanoAlternatives = null, example = null, note = null) {
+        try {
+            const { data, error } = await supabase
+                .from('vocabulary')
+                .update({
+                    euskera,
+                    castellano,
+                    euskera_alternatives: euskeraAlternatives,
+                    castellano_alternatives: castellanoAlternatives,
+                    example,
+                    note
+                })
+                .eq('id', id)
+                .select();
+            
+            if (error) throw error;
+
+            // RLS blocks UPDATEs silently: no error, but 0 rows changed.
+            if (!data || data.length === 0) {
+                return {
+                    success: false,
+                    error: 'Update was blocked (no rows changed). The vocabulary table is likely missing an UPDATE policy in Supabase. Run database/add-vocabulary-update-policy.sql.'
+                };
+            }
+
+            return { success: true, data: data[0] };
+        } catch (error) {
+            console.error('Update vocabulary error:', error);
+            return { success: false, error: error.message };
+        }
     }
 };
 
