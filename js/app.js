@@ -4,6 +4,7 @@ const routes = {
     'menu': renderMenuScreen,
     'study': renderStudyScreen,
     'phrases': renderPhrasesScreen,
+    'vocabularypractice': renderVocabularyPracticeScreen,
     'addcontent': renderAddContentScreen,
     'challenges': renderChallengesScreen,
     'statistics': renderStatisticsScreen
@@ -34,9 +35,6 @@ async function navigateTo(route) {
         await routes['menu']();
         return;
     }
-    
-    // Keep the current user id available for user-scoped local storage
-    window.currentUserId = session?.user?.id || null;
     
     currentRoute = route;
     const result = routes[route]();

@@ -36,9 +36,8 @@ euskapp/
 │
 ├── js/
 │   ├── app.js              # Navigation / routing + app bootstrap
-│   ├── supabase-client.js  # Supabase client + Auth/Phrases/Progress APIs
-│   ├── storage.js          # Local storage for the current phrase index
-│   ├── data.js             # Phrase loading + answer comparison helpers
+│   ├── supabase-client.js  # Supabase client + Auth/Phrases/Vocabulary/Progress APIs
+│   ├── data.js             # Phrase/vocabulary loading + answer comparison helpers
 │   └── screens/
 │       ├── login.js        # Login / registration
 │       ├── menu.js         # Main menu

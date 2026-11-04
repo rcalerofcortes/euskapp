@@ -23,9 +23,9 @@ function renderStudyScreen() {
                     <p>Coming soon</p>
                 </div>
                 
-                <div class="box" style="opacity: 0.5; cursor: not-allowed;" title="Coming soon">
+                <div class="box" onclick="navigateTo('vocabularypractice')">
                     <h2>Vocabulary</h2>
-                    <p>Coming soon</p>
+                    <p>Practice individual words</p>
                 </div>
                 
                 <div class="box" style="opacity: 0.5; cursor: not-allowed;" title="Coming soon">

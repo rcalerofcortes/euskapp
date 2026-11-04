@@ -25,7 +25,8 @@ async function loadPhrasesFromSupabase() {
                 euskera: phrase.euskera,
                 castellano: phrase.castellano,
                 euskeraAlternatives: phrase.euskera_alternatives,
-                note: phrase.note
+                note: phrase.note,
+                createdAt: phrase.created_at
             }));
             
             console.log(`✅ Loaded ${phrasesData.length} phrases from Supabase`);
@@ -95,7 +96,8 @@ async function loadVocabularyFromSupabase() {
                 euskeraAlternatives: word.euskera_alternatives,
                 castellanoAlternatives: word.castellano_alternatives,
                 example: word.example,
-                note: word.note
+                note: word.note,
+                createdAt: word.created_at
             }));
 
             console.log(`✅ Loaded ${vocabularyData.length} vocabulary words from Supabase`);

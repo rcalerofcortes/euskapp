@@ -5,12 +5,83 @@ let translationDirection = 'euskera-castellano'; // o 'castellano-euskera'
 let hasChecked = false;
 let phrasesViewMode = 'practice'; // 'practice' or 'review'
 
+// Phrase selection filter
+let currentFilter = 'random';   // 'random' | 'month' | 'week' | 'today' | 'date' | 'all'
+let randomCount = 10;           // how many phrases when filter === 'random'
+let pickedFrom = '';            // YYYY-MM-DD start of range when filter === 'date'
+let pickedTo = '';              // YYYY-MM-DD end of range when filter === 'date'
+let activePhrases = [];         // the phrases currently being practised (after filtering)
+
+// Build the active phrase set from the full list according to the current filter
+function buildActivePhrases() {
+    const all = getAllPhrases();
+
+    const sameDay = (dateStr, ref) => {
+        if (!dateStr) return false;
+        const d = new Date(dateStr);
+        return d.getFullYear() === ref.getFullYear()
+            && d.getMonth() === ref.getMonth()
+            && d.getDate() === ref.getDate();
+    };
+
+    const now = new Date();
+
+    switch (currentFilter) {
+        case 'all':
+            activePhrases = [...all];
+            break;
+
+        case 'today':
+            activePhrases = all.filter(p => sameDay(p.createdAt, now));
+            break;
+
+        case 'week': {
+            const weekAgo = new Date(now);
+            weekAgo.setDate(weekAgo.getDate() - 7);
+            activePhrases = all.filter(p => p.createdAt && new Date(p.createdAt) >= weekAgo);
+            break;
+        }
+
+        case 'month':
+            activePhrases = all.filter(p => {
+                if (!p.createdAt) return false;
+                const d = new Date(p.createdAt);
+                return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+            });
+            break;
+
+        case 'date': {
+            // Date range (inclusive). Either bound may be left open.
+            if (!pickedFrom && !pickedTo) {
+                activePhrases = [];
+                break;
+            }
+            const from = pickedFrom ? new Date(pickedFrom + 'T00:00:00') : null;
+            const to = pickedTo ? new Date(pickedTo + 'T23:59:59.999') : null;
+            activePhrases = all.filter(p => {
+                if (!p.createdAt) return false;
+                const d = new Date(p.createdAt);
+                if (from && d < from) return false;
+                if (to && d > to) return false;
+                return true;
+            });
+            break;
+        }
+
+        case 'random':
+        default: {
+            // Shuffle a copy, then take the requested amount
+            const shuffled = [...all].sort(() => Math.random() - 0.5);
+            const count = randomCount > 0 ? randomCount : all.length;
+            activePhrases = shuffled.slice(0, count);
+            break;
+        }
+    }
+}
+
 function renderPhrasesScreen() {
     const app = document.getElementById('app');
-    
-    // Load saved progress
-    currentPhraseIndex = Storage.getCurrentPhraseIndex();
-    
+
     app.innerHTML = `
         <div class="screen">
             <div class="header">
@@ -46,8 +117,9 @@ function switchPhrasesView(mode) {
 
 function renderPracticeMode() {
     const content = document.getElementById('phrases-content');
-    
+
     content.innerHTML = `
+        ${renderFilterControls()}
         <div style="text-align: center; margin-bottom: 15px;">
             <button class="btn btn-secondary" onclick="restartFromBeginning()" style="font-size: 13px; padding: 6px 12px;">
                 ↺ Restart from Beginning
@@ -60,8 +132,75 @@ function renderPracticeMode() {
             <button class="btn btn-secondary" onclick="nextPhrase()" id="next-btn">Next ></button>
         </div>
     `;
-    
+
+    // Build the active set and start practising
+    buildActivePhrases();
+    currentPhraseIndex = 0;
     loadPhrase();
+}
+
+function renderFilterControls() {
+    return `
+        <div style="background: #f8f9fa; border-radius: 12px; padding: 15px; margin-bottom: 20px;">
+            <label style="display: block; font-size: 13px; color: #666; margin-bottom: 6px;">Select phrases</label>
+            <select id="phrase-filter" onchange="onFilterChange(this.value)"
+                    style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px;">
+                <option value="random" ${currentFilter === 'random' ? 'selected' : ''}>Random</option>
+                <option value="month" ${currentFilter === 'month' ? 'selected' : ''}>This month</option>
+                <option value="week" ${currentFilter === 'week' ? 'selected' : ''}>Last week</option>
+                <option value="today" ${currentFilter === 'today' ? 'selected' : ''}>Today</option>
+                <option value="date" ${currentFilter === 'date' ? 'selected' : ''}>Pick a date</option>
+                <option value="all" ${currentFilter === 'all' ? 'selected' : ''}>All</option>
+            </select>
+
+            ${currentFilter === 'random' ? `
+                <div style="margin-top: 10px;">
+                    <label style="display: block; font-size: 13px; color: #666; margin-bottom: 6px;">How many</label>
+                    <input type="number" id="random-count-input" min="1"
+                           value="${randomCount}" onchange="onRandomCountInput(this.value)"
+                           style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px;">
+                </div>
+            ` : ''}
+
+            ${currentFilter === 'date' ? `
+                <div style="margin-top: 10px; display: flex; gap: 10px;">
+                    <div style="flex: 1;">
+                        <label style="display: block; font-size: 13px; color: #666; margin-bottom: 6px;">From</label>
+                        <input type="date" id="pick-date-from" value="${pickedFrom}" onchange="onPickDateFrom(this.value)"
+                               style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px;">
+                    </div>
+                    <div style="flex: 1;">
+                        <label style="display: block; font-size: 13px; color: #666; margin-bottom: 6px;">To</label>
+                        <input type="date" id="pick-date-to" value="${pickedTo}" onchange="onPickDateTo(this.value)"
+                               style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px;">
+                    </div>
+                </div>
+            ` : ''}
+        </div>
+    `;
+}
+
+function onFilterChange(value) {
+    currentFilter = value;
+    renderPracticeMode();
+}
+
+function onRandomCountInput(value) {
+    const n = parseInt(value, 10);
+    if (!isNaN(n) && n > 0) {
+        randomCount = n;
+        renderPracticeMode();
+    }
+}
+
+function onPickDateFrom(value) {
+    pickedFrom = value;
+    renderPracticeMode();
+}
+
+function onPickDateTo(value) {
+    pickedTo = value;
+    renderPracticeMode();
 }
 
 async function renderReviewMode() {
@@ -163,27 +302,44 @@ async function renderReviewMode() {
 }
 
 function loadPhrase() {
-    const phrases = getAllPhrases();
-    
+    const phrases = activePhrases;
+
+    // No phrases match the current filter
+    if (!phrases || phrases.length === 0) {
+        renderNoPhrasesForFilter();
+        updateCounter();
+        updateNavigationButtons();
+        return;
+    }
+
     if (currentPhraseIndex >= phrases.length) {
         currentPhraseIndex = 0;
     }
     if (currentPhraseIndex < 0) {
         currentPhraseIndex = phrases.length - 1;
     }
-    
+
     currentPhrase = phrases[currentPhraseIndex];
     hasChecked = false;
-    
-    // Save progress
-    Storage.saveCurrentPhraseIndex(currentPhraseIndex);
-    
+
     // Alternate translation direction randomly
     translationDirection = Math.random() > 0.5 ? 'euskera-castellano' : 'castellano-euskera';
-    
+
     renderPhraseCard();
     updateCounter();
     updateNavigationButtons();
+}
+
+function renderNoPhrasesForFilter() {
+    const content = document.getElementById('phrase-content');
+    if (!content) return;
+    content.innerHTML = `
+        <div style="text-align: center; padding: 40px 20px;">
+            <div style="font-size: 48px; margin-bottom: 15px;">🔍</div>
+            <h3 style="color: #667eea; margin-bottom: 10px;">No phrases for this selection</h3>
+            <p style="color: #666;">Try a different filter or add more phrases.</p>
+        </div>
+    `;
 }
 
 function renderPhraseCard() {
@@ -352,9 +508,8 @@ function previousPhrase() {
 }
 
 function restartFromBeginning() {
-    if (confirm('¿Quieres reiniciar desde la primera frase?')) {
+    if (confirm('Restart from the first phrase?')) {
         currentPhraseIndex = 0;
-        Storage.resetPhraseIndex();
         loadPhrase();
     }
 }
@@ -377,16 +532,22 @@ async function saveProgressAsync(phraseId, isCorrect) {
 
 function updateCounter() {
     const counter = document.getElementById('phrase-counter');
-    const total = getAllPhrases().length;
-    counter.textContent = `Phrase ${currentPhraseIndex + 1} of ${total}`;
+    if (!counter) return;
+    const total = activePhrases.length;
+    if (total === 0) {
+        counter.textContent = 'No phrases selected';
+    } else {
+        counter.textContent = `Phrase ${currentPhraseIndex + 1} of ${total}`;
+    }
 }
 
 function updateNavigationButtons() {
     const prevBtn = document.getElementById('prev-btn');
     const nextBtn = document.getElementById('next-btn');
-    const total = getAllPhrases().length;
-    
-    // Always enable both buttons (infinite loop)
-    prevBtn.disabled = false;
-    nextBtn.disabled = false;
+    if (!prevBtn || !nextBtn) return;
+
+    // Disable navigation when the filter yields no phrases
+    const disabled = activePhrases.length === 0;
+    prevBtn.disabled = disabled;
+    nextBtn.disabled = disabled;
 }

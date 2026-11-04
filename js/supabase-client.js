@@ -415,6 +415,95 @@ const SupabaseProgress = {
 };
 
 // =====================================================
+// DATABASE FUNCTIONS - VOCABULARY PROGRESS
+// =====================================================
+
+const SupabaseVocabularyProgress = {
+    // Get progress for a specific word
+    async getWordProgress(vocabularyId) {
+        try {
+            const user = await SupabaseAuth.getCurrentUser();
+            if (!user) throw new Error('User not authenticated');
+
+            const { data, error } = await supabase
+                .from('user_vocabulary_progress')
+                .select('*')
+                .eq('user_id', user.id)
+                .eq('vocabulary_id', vocabularyId)
+                .single();
+
+            if (error && error.code !== 'PGRST116') throw error; // PGRST116 = no rows
+            return { success: true, data: data || null };
+        } catch (error) {
+            console.error('Get word progress error:', error);
+            return { success: false, error: error.message };
+        }
+    },
+
+    // Save or update word progress
+    async saveProgress(vocabularyId, isCorrect) {
+        try {
+            const user = await SupabaseAuth.getCurrentUser();
+            if (!user) throw new Error('User not authenticated');
+
+            const existingProgress = await this.getWordProgress(vocabularyId);
+
+            if (existingProgress.data) {
+                const { data, error } = await supabase
+                    .from('user_vocabulary_progress')
+                    .update({
+                        correct_count: existingProgress.data.correct_count + (isCorrect ? 1 : 0),
+                        incorrect_count: existingProgress.data.incorrect_count + (isCorrect ? 0 : 1)
+                    })
+                    .eq('user_id', user.id)
+                    .eq('vocabulary_id', vocabularyId)
+                    .select();
+
+                if (error) throw error;
+                return { success: true, data: data[0] };
+            } else {
+                const { data, error } = await supabase
+                    .from('user_vocabulary_progress')
+                    .insert([{
+                        user_id: user.id,
+                        vocabulary_id: vocabularyId,
+                        correct_count: isCorrect ? 1 : 0,
+                        incorrect_count: isCorrect ? 0 : 1
+                    }])
+                    .select();
+
+                if (error) throw error;
+                return { success: true, data: data[0] };
+            }
+        } catch (error) {
+            console.error('Save word progress error:', error);
+            return { success: false, error: error.message };
+        }
+    },
+
+    // Get words the user has answered correctly at least once
+    async getCorrectWords() {
+        try {
+            const user = await SupabaseAuth.getCurrentUser();
+            if (!user) throw new Error('User not authenticated');
+
+            const { data, error } = await supabase
+                .from('user_vocabulary_progress')
+                .select('*, vocabulary(*)')
+                .eq('user_id', user.id)
+                .gt('correct_count', 0)
+                .order('correct_count', { ascending: false });
+
+            if (error) throw error;
+            return { success: true, data };
+        } catch (error) {
+            console.error('Get correct words error:', error);
+            return { success: false, error: error.message };
+        }
+    }
+};
+
+// =====================================================
 // DATABASE FUNCTIONS - DAILY PROGRESS
 // =====================================================
 
@@ -527,6 +616,7 @@ window.SupabaseAuth = SupabaseAuth;
 window.SupabasePhrases = SupabasePhrases;
 window.SupabaseVocabulary = SupabaseVocabulary;
 window.SupabaseProgress = SupabaseProgress;
+window.SupabaseVocabularyProgress = SupabaseVocabularyProgress;
 window.SupabaseDailyProgress = SupabaseDailyProgress;
 
 console.log('Supabase client initialized successfully');
