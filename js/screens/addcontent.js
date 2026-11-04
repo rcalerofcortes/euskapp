@@ -159,7 +159,7 @@ function renderAllPhrasesList(phrases) {
 
             <div style="display: flex; flex-direction: column; gap: 10px;">
                 ${phrases.map(phrase => `
-                    <div style="background: white; border: 2px solid #e0e0e0; border-radius: 8px; padding: 15px;">
+                    <div style="background: white; border: 2px solid #e0e0e0; border-radius: 8px; padding: 15px; display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;">
                         <div style="flex: 1;">
                             <div style="font-size: 16px; font-weight: 600; color: #333; margin-bottom: 5px;">
                                 ${phrase.euskera}
@@ -178,10 +178,16 @@ function renderAllPhrasesList(phrases) {
                                 </div>
                             ` : ''}
                         </div>
+                        <button class="btn btn-secondary" onclick="openEditPhraseModal(${phrase.id})"
+                                style="padding: 6px 12px; font-size: 13px; white-space: nowrap;">
+                            ✏️ Edit
+                        </button>
                     </div>
                 `).join('')}
             </div>
         </div>
+
+        <div id="edit-phrase-modal-container"></div>
     `;
 }
 
@@ -325,6 +331,115 @@ function clearAddPhraseForm() {
 
 function showAddPhraseMessage(message, type) {
     showContentMessage('add-phrase-message', message, type);
+}
+
+// =====================================================
+// EDIT PHRASE MODAL
+// =====================================================
+
+function openEditPhraseModal(id) {
+    const phrase = getAllPhrases().find(p => p.id === id);
+    if (!phrase) return;
+
+    const container = document.getElementById('edit-phrase-modal-container');
+    if (!container) return;
+
+    const alternatives = (phrase.euskeraAlternatives || []).join(', ');
+
+    container.innerHTML = `
+        <div class="modal-overlay" onclick="if (event.target === this) closeEditPhraseModal()">
+            <div class="modal-box">
+                <h2 style="color: #333; margin-bottom: 20px;">Edit Phrase</h2>
+
+                <div class="form-group">
+                    <label for="edit-phrase-euskera">Euskera</label>
+                    <input type="text" id="edit-phrase-euskera" autocomplete="off" value="${escapeAttr(phrase.euskera)}">
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-phrase-alternatives">Alternatives in Euskera (comma-separated)</label>
+                    <input type="text" id="edit-phrase-alternatives" autocomplete="off"
+                           placeholder="e.g. Gaur gauza asko egin duzu" value="${escapeAttr(alternatives)}">
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-phrase-castellano">Castellano</label>
+                    <input type="text" id="edit-phrase-castellano" autocomplete="off" value="${escapeAttr(phrase.castellano)}">
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-phrase-note">Note (Optional)</label>
+                    <textarea id="edit-phrase-note" autocomplete="off"
+                              style="width: 100%; min-height: 60px; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-family: inherit; resize: vertical;">${escapeHtml(phrase.note || '')}</textarea>
+                </div>
+
+                <div id="edit-phrase-message" style="margin-top: 10px; display: none;"></div>
+
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button class="btn btn-primary" onclick="handleSaveEditPhrase(${id})" style="flex: 1;">Save</button>
+                    <button class="btn btn-secondary" onclick="closeEditPhraseModal()" style="flex: 1;">Cancel</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    const firstInput = document.getElementById('edit-phrase-euskera');
+    if (firstInput) firstInput.focus();
+}
+
+function closeEditPhraseModal() {
+    const container = document.getElementById('edit-phrase-modal-container');
+    if (container) container.innerHTML = '';
+}
+
+async function handleSaveEditPhrase(id) {
+    const euskera = document.getElementById('edit-phrase-euskera').value.trim();
+    const castellano = document.getElementById('edit-phrase-castellano').value.trim();
+    const note = document.getElementById('edit-phrase-note').value.trim();
+    const alternatives = document.getElementById('edit-phrase-alternatives').value
+        .split(',')
+        .map(a => a.trim())
+        .filter(a => a.length > 0);
+
+    if (!euskera || !castellano) {
+        showContentMessage('edit-phrase-message', 'Euskera and Castellano are required', 'error');
+        return;
+    }
+
+    showContentMessage('edit-phrase-message', 'Saving...', 'loading');
+
+    try {
+        const result = await SupabasePhrases.updatePhrase(
+            id,
+            euskera,
+            castellano,
+            alternatives.length > 0 ? alternatives : null,
+            note || null
+        );
+
+        if (result.success) {
+            await loadPhrasesFromSupabase();
+            closeEditPhraseModal();
+            renderAddContentScreen();
+        } else {
+            showContentMessage('edit-phrase-message', 'Error saving: ' + (result.error || 'Unknown error'), 'error');
+        }
+    } catch (error) {
+        showContentMessage('edit-phrase-message', 'Error saving. Please try again.', 'error');
+        console.error('Error updating phrase:', error);
+    }
+}
+
+// Escape helpers for safely injecting values into HTML attributes / text
+function escapeHtml(str) {
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+}
+
+function escapeAttr(str) {
+    return escapeHtml(str).replace(/"/g, '&quot;');
 }
 
 // =====================================================

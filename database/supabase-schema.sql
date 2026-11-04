@@ -33,6 +33,13 @@ CREATE POLICY "Authenticated users can insert phrases" ON phrases
     TO authenticated
     WITH CHECK (true);
 
+-- Policy: Authenticated users can update phrases (edit from "All Phrases")
+CREATE POLICY "Authenticated users can update phrases" ON phrases
+    FOR UPDATE
+    TO authenticated
+    USING (true)
+    WITH CHECK (true);
+
 
 -- =====================================================
 -- TABLE 2: user_progress

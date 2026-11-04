@@ -188,6 +188,38 @@ const SupabasePhrases = {
             console.error('Add phrase error:', error);
             return { success: false, error: error.message };
         }
+    },
+
+    // Update an existing phrase
+    async updatePhrase(id, euskera, castellano, euskeraAlternatives = null, note = null) {
+        try {
+            const { data, error } = await supabase
+                .from('phrases')
+                .update({
+                    euskera,
+                    castellano,
+                    euskera_alternatives: euskeraAlternatives,
+                    note
+                })
+                .eq('id', id)
+                .select();
+            
+            if (error) throw error;
+
+            // RLS blocks UPDATEs silently: no error, but 0 rows changed.
+            // Surface that instead of pretending it worked.
+            if (!data || data.length === 0) {
+                return {
+                    success: false,
+                    error: 'Update was blocked (no rows changed). The phrases table is likely missing an UPDATE policy in Supabase. Run database/add-phrase-update-policy.sql.'
+                };
+            }
+
+            return { success: true, data: data[0] };
+        } catch (error) {
+            console.error('Update phrase error:', error);
+            return { success: false, error: error.message };
+        }
     }
 };
 
